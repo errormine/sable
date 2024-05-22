@@ -60,7 +60,7 @@ fn init_audio_player() {
 fn register_songs(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
     
-    let register_songs = move || {
+    thread::spawn(move || {
         let songs = get_song_files(&dir);
         let mut progress = 0;
         app.emit_all("total_songs", Payload { message: songs.len().to_string() }).unwrap();
@@ -100,9 +100,7 @@ fn register_songs(dir: &Path, app: tauri::AppHandle) {
 
         println!("Done registering songs");
         app.emit_all("songs_registered", Payload { message: "done".to_string() }).unwrap();
-    };
-
-    thread::spawn(register_songs);
+    });
 }
 
 #[tauri::command]
