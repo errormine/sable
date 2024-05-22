@@ -1,0 +1,26 @@
+[package]
+name = "music-player"
+version = "0.0.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = [ "protocol-asset", "fs-all", "dialog-all", "shell-open"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+minimp3 = "0.5.1"
+rodio = "0.18.0"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
+symphonia = "0.5.4"
+id3 = "1.13.1"
+jwalk = "0.8.1"
+
+[features]
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
