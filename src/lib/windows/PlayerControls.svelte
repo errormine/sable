@@ -1,6 +1,6 @@
 <script context="module">
     import { invoke } from '@tauri-apps/api/tauri';
-    import { writable } from 'svelte/store';
+    import { get, writable } from 'svelte/store';
     import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
 
     let currentSong = '';
@@ -41,6 +41,13 @@
         clearInterval(progressInterval);
         isPlaying.set(false);
     }
+
+    songProgress.subscribe(async (value) => {
+        if (value >= get(songDuration)) {
+            clearInterval(progressInterval);
+            isPlaying.set(false);
+        }
+    });
 </script>
 
 <script>
