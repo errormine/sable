@@ -59,8 +59,16 @@
     import { onMount } from 'svelte';
 
     onMount(() => {
-        progressBar.addEventListener('input', async (event) => {
-            // TODO: make this work
+        progressBar.addEventListener('input', (event) => {
+            userSeeking = true;
+        });
+
+        progressBar.addEventListener('mouseup', async (event) => {
+            let newTime = event.target.value;
+            console.log(`Seeking to : ${newTime}`);
+            await invoke('seek', { position: newTime });
+            songProgress.set(Number(newTime));
+            userSeeking = false;
         });
     });
 </script>
