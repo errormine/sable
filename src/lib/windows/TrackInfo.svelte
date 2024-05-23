@@ -1,7 +1,12 @@
 <script context="module">
     import { writable } from "svelte/store";
 
-    export let currentlyPlaying = writable(null);
+    export let currentlyPlaying = writable({
+        title: "",
+        artist: "",
+        file_path: "",
+        duration: 0
+    });
 </script>
 
 <script>

@@ -9,6 +9,8 @@
     let isPlaying = writable(false);
 
     let intervalIndex;
+    let progressBar;
+    let userSeeking = false;
 
     export async function play(song) {
         if (!song.file_path) return;
@@ -42,6 +44,8 @@
     }
 
     songProgress.subscribe(async (value) => {
+        if (userSeeking) return;
+        if (progressBar) progressBar.value = value;
         if (value >= get(currentlyPlaying).duration) {
             clearInterval(intervalIndex);
             isPlaying.set(false);
@@ -52,6 +56,13 @@
 
 <script>
     import { sec2time } from '../utils';
+    import { onMount } from 'svelte';
+
+    onMount(() => {
+        progressBar.addEventListener('input', async (event) => {
+            // TODO: make this work
+        });
+    });
 </script>
 
 <footer>
@@ -72,7 +83,7 @@
     </section>
 
     <section id="progress-controls">
-        <input type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration}>
+        <input bind:this={progressBar} type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration} >
         <label for="progress-bar">{sec2time($songProgress)} / {sec2time($currentlyPlaying.duration)}</label>
     </section>
 

@@ -3,21 +3,15 @@
     import { play } from "./PlayerControls.svelte";
 
     let songQueue = writable([]);
-    let currentSongIndex = 0;
+    let currentSongIndex = writable(0);
 
     export function setQueue(songs, offset) {
         songQueue.set(songs);
-        currentSongIndex = 0;
-
-        // track numbers are 1-indexed
-        while (currentSongIndex < offset) {
-            currentSongIndex++;
-            songQueue.update((queue) => queue.slice(1));
-        }
+        currentSongIndex.set(offset - 1);
     }
 
     export async function attemptPlayNext() {
-        currentSongIndex++;
+        currentSongIndex.set(get(currentSongIndex) + 1);
         songQueue.update((queue) => queue.slice(1));
         let nextSong = get(songQueue)[0];
         if (!nextSong) return;
@@ -33,13 +27,13 @@
     <p>Song queue</p>
     {#if $songQueue.length > 0}
         <ol class="queue-list">
-            {#each $songQueue as song}
-                {#if song.track_number > currentSongIndex}
+            {#each $songQueue as song, index}
+                {#if index > $currentSongIndex}
                     <li class="song-item">
                         <!-- Evil!!! -->
                         <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
                         <section class="no-wrap">
-                            <p class="no-wrap">{song.title}</p>
+                            <p class="no-wrap"><strong>{song.title}</strong></p>
                             <p class="no-wrap">{song.artist}</p>
                         </section>
                     </li>
