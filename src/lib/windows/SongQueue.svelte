@@ -1,15 +1,31 @@
+<script context="module">
+    import { writable } from "svelte/store";
+
+    let songQueue = writable([]);
+    let currentSongIndex = 0;
+
+    export function setQueue(songs, offset) {
+        songQueue.set(songs);
+        currentSongIndex = 0;
+
+        // track numbers are 1-indexed
+        while (currentSongIndex < offset) {
+            currentSongIndex++;
+            songQueue.update((queue) => queue.slice(1));
+        }
+    }
+</script>
+
 <script>
-    import { invoke } from "@tauri-apps/api";
     import { convertFileSrc } from "@tauri-apps/api/tauri";
-    import { songQueue, currentSongIndex } from "../../lib/stores/queue.js";
 </script>
 
 <section class="song-queue">
     <p>Song queue</p>
-    {#if $songQueue}
+    {#if $songQueue.length > 0}
         <ol class="queue-list">
             {#each $songQueue as song}
-                {#if song.track_number > $currentSongIndex}
+                {#if song.track_number > currentSongIndex}
                     <li class="song-item">
                         <!-- Evil!!! -->
                         <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">

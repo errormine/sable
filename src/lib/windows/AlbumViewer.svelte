@@ -13,10 +13,10 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
-    import { createEventDispatcher, onMount } from 'svelte';
-    import { songQueue, currentSongIndex } from '../../lib/stores/queue.js';
+    import { onMount } from 'svelte';
     import { play } from './PlayerControls.svelte';
     import { currentlyPlaying } from './TrackInfo.svelte';
+    import { setQueue } from './SongQueue.svelte';
 
     let albumViewer;
     let songList;
@@ -46,9 +46,8 @@
 
     async function playSongAndQueue(song) {
         play(song.file_path, song.duration);
+        setQueue(songList, song.track_number);
         currentlyPlaying.set(song);
-        songQueue.set(songList);
-        currentSongIndex.set(song.track_number);
     }
 
     function resizeSongSelector(offsetNode) {
