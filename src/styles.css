@@ -1,3 +1,42 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-display: block;
+    font-family: "Nimbus";
+    src: url(fonts/NimbusSanL-Regular.otf) format('opentype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-display: block;
+    font-family: "Nimbus";
+    src: url(fonts/NimbusSanL-Bold.otf) format('opentype');
+    font-weight: bold;
+}
+
+@font-face {
+    font-display: block;
+    font-family: "Nimbus";
+    src: url(fonts/NimbusSanL-RegIta.otf) format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-display: block;
+    font-family: "Nimbus";
+    src: url(fonts/NimbusSanL-BoldIta.otf) format('opentype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+html {
+    font-size: 14px;
+    text-align: left;
+
+    letter-spacing: 0.08ch;
+    line-height: 1.5;
+    font-family: Nimbus, serif;
+}
