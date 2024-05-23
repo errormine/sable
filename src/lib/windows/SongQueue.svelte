@@ -1,5 +1,6 @@
 <script context="module">
-    import { writable } from "svelte/store";
+    import { get, writable } from "svelte/store";
+    import { play } from "./PlayerControls.svelte";
 
     let songQueue = writable([]);
     let currentSongIndex = 0;
@@ -13,6 +14,14 @@
             currentSongIndex++;
             songQueue.update((queue) => queue.slice(1));
         }
+    }
+
+    export async function attemptPlayNext() {
+        currentSongIndex++;
+        songQueue.update((queue) => queue.slice(1));
+        let nextSong = get(songQueue)[0];
+        if (!nextSong) return;
+        play(nextSong.file_path, nextSong.duration);
     }
 </script>
 

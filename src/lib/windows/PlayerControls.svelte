@@ -2,6 +2,7 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { get, writable } from 'svelte/store';
     import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
+    import { attemptPlayNext } from './SongQueue.svelte';
 
     let currentSong = '';
     let songProgress = writable(0);
@@ -46,6 +47,7 @@
         if (value >= get(songDuration)) {
             clearInterval(progressInterval);
             isPlaying.set(false);
+            attemptPlayNext();
         }
     });
 </script>
