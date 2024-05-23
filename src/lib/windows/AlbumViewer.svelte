@@ -111,7 +111,7 @@
 
 <style>
     .album-viewer {
-        max-height: calc(100vh - 4rem);
+        max-height: var(--main-window-height);
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;

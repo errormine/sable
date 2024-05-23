@@ -51,7 +51,15 @@
             isPlaying.set(false);
             attemptPlayNext();
         }
+
+        updateProgressBarStyle();
     });
+
+    function updateProgressBarStyle() {
+        progressBar.style.setProperty('--value', progressBar.value);
+        progressBar.style.setProperty('--min', progressBar.min);
+        progressBar.style.setProperty('--max', progressBar.max);
+    }
 </script>
 
 <script>
@@ -61,6 +69,7 @@
     onMount(() => {
         progressBar.addEventListener('input', (event) => {
             userSeeking = true;
+            updateProgressBarStyle();
         });
 
         progressBar.addEventListener('mouseup', async (event) => {
@@ -91,8 +100,9 @@
     </section>
 
     <section id="progress-controls">
-        <input bind:this={progressBar} type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration} >
-        <label for="progress-bar">{sec2time($songProgress)} / {sec2time($currentlyPlaying.duration)}</label>
+        <label for="progress-bar">{sec2time($songProgress)}</label>
+        <input bind:this={progressBar} class="styled-slider slider-progress" type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration} />
+        <p>{sec2time($currentlyPlaying.duration)}</p>
     </section>
 
     <section id="secondary-controls">
@@ -121,6 +131,20 @@
         justify-content: space-between;
         padding: 0.5rem;
         background-color: white;
-        height: 2.5rem;
+        height: var(--controls-height);
+    }
+
+    footer > section {
+        display: flex;
+        align-content: center;
+    }
+
+    label[for="progress-bar"] {
+        pointer-events: none;
+    }
+
+    #progress-bar {
+        width: 50vw;
+        margin: 0 1rem;
     }
 </style>

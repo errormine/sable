@@ -62,7 +62,7 @@
 
 <style>
     #menu-bar {
-        height: 1.5rem;
+        height: var(--menu-bar-height);
     }
 
     main {
