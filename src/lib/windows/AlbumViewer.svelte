@@ -7,7 +7,8 @@
 
     let albums;
     let songList;
-    let selectedAlbum;
+    let songSelector;
+    let activeAlbum;
 
     export async function refreshLibrary() {
         await invoke('get_albums').then(albumsJSON => {
@@ -17,16 +18,21 @@
     }
 
     async function selectAlbum(target, album) {
-        if (selectedAlbum != target) {
+        let selection = { _element: target, meta: album };
+
+        if (activeAlbum != selection) {
             loadSongs(album.title, album.artist);
-            selectedAlbum = target;
+            activeAlbum = selection;
+
+            // Show song selector
+            target.parentNode.appendChild(songSelector);
+            songSelector.style.left = -target.offsetLeft + 'px';
         } else {
-            selectedAlbum = null;
+            activeAlbum = null;
         }
     }
 
     async function loadSongs(album, artist) {
-        songList = null;
         await invoke('get_songs_by_album', { album: album, artist: artist }).then(songsJSON => {
             songList = JSON.parse(songsJSON);
             console.log(songList);
@@ -39,8 +45,10 @@
         <ul>
             {#each albums as album}
                 <li class="album">
-                    <button on:click={(e) => selectAlbum(e.target, album)}>
-                        <img src={convertFileSrc(album.cover_path)} alt="">
+                    <button on:click={(e) => selectAlbum(e.currentTarget, album)}>
+                        <section class="cover-wrapper">
+                            <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
+                        </section>
                         <p class="title"><strong>{album.title}</strong></p>
                         <p>{album.artist}</p>
                     </button>
@@ -50,17 +58,21 @@
     {:else}
         <p>No albums found</p>
     {/if}
-    <section class="song-list">
-        {#if songList && selectedAlbum != null}
-            <ul>
-                {#each songList as song}
-                    <li>
-                        <button on:click={() => dispatch("playSong", song)}>
-                            <p class="song-title">{song.title}</p>
-                        </button>
-                    </li>
-                {/each}
-            </ul>
+    <section bind:this={songSelector} class="song-selector">
+        {#if songList && activeAlbum != null}
+            <img class="large-album-cover" src={convertFileSrc(activeAlbum.meta.cover_path)} alt="">
+            <section class="album-info">
+                <h2>{activeAlbum.meta.title}</h2>
+                <ul>
+                    {#each songList as song}
+                        <li>
+                            <button on:click={() => dispatch("playSong", song)}>
+                                <p class="song-title">{song.title}</p>
+                            </button>
+                        </li>
+                    {/each}
+                </ul>
+            </section>
         {/if}
     </section>
 </section>
@@ -87,26 +99,37 @@
         width: 100%;
     }
 
+    .album-viewer .cover-wrapper {
+        aspect-ratio: 1 / 1;
+        object-fit: scale-down;
+    }
+    
     .album-viewer img {
         width: 100%;
         border-radius: 0.25rem;
     }
 
     .album-viewer .title,
-    .song-list .song-title {
+    .song-selector .song-title {
         overflow-x: hidden;
         text-overflow: ellipsis;
         text-wrap: nowrap;
     }
 
-    .song-list ul {
+    .song-selector {
+        position: relative;
+        width: 100vw;
+        display: grid;
+        grid-template-columns: 25% 1fr;
+    }
+
+    .song-selector ul {
         padding: 1rem;
         list-style-type: decimal;
         column-count: auto;
-        column-width: 18rem;
     }
 
-    .song-list .song-title {
+    .song-selector .song-title {
         font-weight: normal;
     }
 </style>
