@@ -1,12 +1,12 @@
-<script>
+<script context="module">
     import { invoke } from '@tauri-apps/api/tauri';
+    import { writable } from 'svelte/store';
     import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
 
-    let progressBar;
     let currentSong = '';
     let songProgress = 0;
     let songDuration = 0;
-    let isPlaying = false;
+    let isPlaying = writable(false);
 
     let progressInterval;
 
@@ -40,47 +40,35 @@
         progressInterval = setInterval(async () => {
             songProgress += 1;
         }, 1000);
-        isPlaying = true;
+        isPlaying.set(true);
     }
 
     async function pausePlayback() {
         await invoke('pause');
         clearInterval(progressInterval);
-        isPlaying = false;
+        isPlaying.set(false);
     }
-
-    async function skipBackward() {
-        await invoke('skip_backward');
-    }
-
-    async function skipForward() {
-        await invoke('skip_forward');
-    }
-
-    $: progressBar?.addEventListener('input', async () => {
-        // TODO: Implement seeking
-    });
 </script>
 
 <footer>
     <section id="main-controls">
-        <button on:click={skipBackward}>
+        <button>
             <BackwardStepSolid />
         </button>
         <button on:click={togglePlayback}>
-            {#if isPlaying}
+            {#if $isPlaying}
                 <PauseSolid />
             {:else}
                 <PlaySolid />
             {/if}
         </button>
-        <button on:click={skipForward}>
+        <button>
             <ForwardStepSolid />
         </button>
     </section>
 
     <section id="progress-controls">
-        <input bind:this={progressBar} type="range" name="progress-bar" id="progress-bar" min="0" max={songDuration}>
+        <input type="range" name="progress-bar" id="progress-bar" min="0" max={songDuration}>
         <label for="progress-bar">{sec2time(songProgress)} / {sec2time(songDuration)}</label>
     </section>
 

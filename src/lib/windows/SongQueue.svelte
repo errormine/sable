@@ -1,35 +1,16 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import { convertFileSrc } from "@tauri-apps/api/tauri";
-    import { createEventDispatcher } from "svelte";
+    import { songQueue, currentSongIndex } from "../../lib/stores/queue.js";
 
-    const dispatch = createEventDispatcher();
-
-    let songs;
-    let currentSongIndex;
-
-    export async function fresh(newSongs, offset = 1) {
-        songs = newSongs;
-        currentSongIndex = 0;
-
-        while (currentSongIndex < offset) {
-            songs.shift();
-            currentSongIndex++;
-        }
-
-        for (let song of songs) {
-            console.log(`Adding ${song.title} to queue`);
-            await invoke('add_to_queue', { filePath: song.file_path });
-        }
-    }
 </script>
 
 <section class="song-queue">
     <p>Song queue</p>
-    {#if songs}
+    {#if $songQueue}
         <ol class="queue-list">
-            {#each songs as song}
-                {#if song.track_number > currentSongIndex}
+            {#each $songQueue as song}
+                {#if song.track_number > $currentSongIndex}
                     <li class="song-item">
                         <!-- Evil!!! -->
                         <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">

@@ -2,8 +2,8 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
     import { createEventDispatcher, onMount } from 'svelte';
-
-    const dispatch = createEventDispatcher();
+    import { songQueue, currentSongIndex } from '../../lib/stores/queue.js';
+    import { play } from './PlayerControls.svelte';
 
     let albumViewer;
     let albums;
@@ -40,8 +40,9 @@
     }
 
     async function playSongAndQueue(song) {
-        dispatch("playSong", song);
-        dispatch("queueFresh", { songs: songList, offset: song.track_number});
+        play(song.file_path, song.duration);
+        songQueue.set(songList);
+        currentSongIndex.set(song.track_number);
     }
 
     function resizeSongSelector(offsetNode) {

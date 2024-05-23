@@ -34,14 +34,6 @@
             });
         }
     }
-
-    async function queueFresh(e) {
-        songQueue.fresh(e.detail.songs, e.detail.offset);
-    }
-
-    async function playSong(e) {
-        controls.play(e.detail.file_path, e.detail.duration);
-    }
 </script>
 
 <header id="menu-bar">
@@ -57,10 +49,10 @@
 
     </section>
     <section id="middle-window">
-        <AlbumViewer bind:this={albumViewer} on:queueFresh={queueFresh} on:playSong={playSong} />
+        <AlbumViewer bind:this={albumViewer} />
     </section>
     <section id="right-window">
-        <SongQueue bind:this={songQueue} on:playSong={playSong} />
+        <SongQueue bind:this={songQueue} />
     </section>
 </main>
 <PlayerControls bind:this={controls}/>
