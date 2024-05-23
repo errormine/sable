@@ -9,7 +9,7 @@
     let songDuration = writable(0);
     let isPlaying = writable(false);
 
-    let progressInterval;
+    let intervalIndex;
 
     export async function play(filePath, duration) {
         if (!filePath) return;
@@ -29,9 +29,9 @@
     }
 
     async function beginPlayBack() {
-        clearInterval(progressInterval);
-        await invoke('resume');
-        progressInterval = setInterval(async () => {
+        clearInterval(intervalIndex);
+        invoke('resume');
+        intervalIndex = setInterval(async () => {
             songProgress.update((n) => n + 1);
         }, 1000);
         isPlaying.set(true);
@@ -39,13 +39,13 @@
 
     async function pausePlayback() {
         await invoke('pause');
-        clearInterval(progressInterval);
+        clearInterval(intervalIndex);
         isPlaying.set(false);
     }
 
     songProgress.subscribe(async (value) => {
         if (value >= get(songDuration)) {
-            clearInterval(progressInterval);
+            clearInterval(intervalIndex);
             isPlaying.set(false);
             attemptPlayNext();
         }
