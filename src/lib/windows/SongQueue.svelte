@@ -1,31 +1,39 @@
 <script>
     import { convertFileSrc } from "@tauri-apps/api/tauri";
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher();
 
     let songs;
-    let currentSongIndex = 0;
+    let currentSongIndex;
 
-    export function fresh(newSongs, offset = 0) {
+    export function fresh(newSongs, offset = 1) {
         songs = newSongs;
         currentSongIndex = offset;
+
+        dispatch('playSong', songs[currentSongIndex]);
     }
 </script>
 
 <section class="song-queue">
+    <p>Song queue</p>
     {#if songs}
         <ol class="queue-list">
             {#each songs as song}
-                <li class="song-item">
-                    <!-- Evil!!! -->
-                    <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
-                    <section class="no-wrap">
-                        <p class="no-wrap">{song.title}</p>
-                        <p class="no-wrap">{song.artist}</p>
-                    </section>
-                </li>
+                {#if song.track_number > currentSongIndex}
+                    <li class="song-item">
+                        <!-- Evil!!! -->
+                        <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
+                        <section class="no-wrap">
+                            <p class="no-wrap">{song.title}</p>
+                            <p class="no-wrap">{song.artist}</p>
+                        </section>
+                    </li>
+                {/if}
             {/each}
         </ol>
     {:else}
-        <p>No songs in queue</p>
+        <p>Empty</p>
     {/if}
 </section>
 

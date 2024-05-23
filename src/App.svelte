@@ -60,7 +60,7 @@
         <AlbumViewer bind:this={albumViewer} on:queueFresh={queueFresh} />
     </section>
     <section id="right-window">
-        <SongQueue bind:this={songQueue}/>
+        <SongQueue bind:this={songQueue} on:playSong={playSong} />
     </section>
 </main>
 <PlayerControls bind:this={controls}/>

@@ -81,9 +81,9 @@
                     <p class="subtitle">{activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
-                    {#each songList as song, index}
+                    {#each songList as song}
                         <li class="song">
-                            <button on:click={() => dispatch("queueFresh", { songs: songList, offset: index})}>
+                            <button on:click={() => dispatch("queueFresh", { songs: songList, offset: song.track_number})}>
                                 <p class="song-title no-wrap"><span>{song.track_number}</span>{song.title}</p>
                             </button>
                         </li>
@@ -100,6 +100,7 @@
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;
+        padding: 0.25rem;
     }
 
     .album-viewer > ul {
