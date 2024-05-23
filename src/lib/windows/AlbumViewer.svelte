@@ -1,10 +1,11 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
 
     const dispatch = createEventDispatcher();
 
+    let albumViewer;
     let albums;
     let songList;
     let songSelector;
@@ -18,14 +19,13 @@
     }
 
     async function selectAlbum(target, album) {
-
         if (activeAlbum != album) {
             loadSongs(album.title, album.artist);
             activeAlbum = album;
 
             // Show song selector
             target.parentNode.appendChild(songSelector);
-            songSelector.style.left = -target.offsetLeft + 'px';
+            resizeSongSelector(target);
         } else {
             activeAlbum = null;
         }
@@ -37,9 +37,21 @@
             console.log(songList);
         });
     }
+
+    function resizeSongSelector(offsetNode) {
+        // Hack to keep the song selector the correct size
+        songSelector.style.left = -offsetNode.offsetLeft + 'px';
+        songSelector.style.width = albumViewer.clientWidth + 'px';
+    }
+
+    onMount(() => {
+        addEventListener('resize', () => {
+            resizeSongSelector(songSelector.parentNode);
+        });
+    });
 </script>
 
-<section class="album-viewer">
+<section bind:this={albumViewer} class="album-viewer">
     {#if albums}
         <ul>
             {#each albums as album}
@@ -61,10 +73,13 @@
         {#if songList && activeAlbum != null}
             <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
             <section class="album-info">
-                <h2>{activeAlbum.title}</h2>
-                <ol>
+                <header>
+                    <h2>{activeAlbum.title}</h2>
+                    <p>{activeAlbum.artist}</p>
+                </header>
+                <ol class="song-list">
                     {#each songList as song}
-                        <li>
+                        <li class="song">
                             <button on:click={() => dispatch("playSong", song)}>
                                 <p class="song-title"><span>{song.track_number}</span>{song.title}</p>
                             </button>
@@ -78,7 +93,6 @@
 
 <style>
     .album-viewer {
-        width: 100%;
         max-height: calc(100vh - 4rem);
         overflow-y: scroll;
         overflow-x: hidden;
@@ -117,17 +131,24 @@
 
     .song-selector {
         position: relative;
-        width: 100vw;
         display: grid;
         grid-template-columns: 16rem 1fr;
         padding: 1rem;
         gap: 1rem;
     }
 
-    .song-selector ol {
+    .song-selector .song-list {
         column-count: auto;
-        column-width: 20rem;
-        column-gap: 2rem;
+        column-width: 25vw;
+    }
+
+    .song-selector .song {
+        padding: 0.1rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+
+    .song-selector .song:hover {
+        outline: 1px solid black;
     }
     
     .song-selector .song-title {
