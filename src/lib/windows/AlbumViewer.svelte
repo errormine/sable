@@ -46,9 +46,8 @@
     }
 
     async function playSongAndQueue(song) {
-        play(song.file_path, song.duration);
+        play(song);
         setQueue(songList, song.track_number);
-        currentlyPlaying.set(song);
     }
 
     function resizeSongSelector(offsetNode) {

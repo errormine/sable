@@ -21,7 +21,7 @@
         songQueue.update((queue) => queue.slice(1));
         let nextSong = get(songQueue)[0];
         if (!nextSong) return;
-        play(nextSong.file_path, nextSong.duration);
+        play(nextSong);
     }
 </script>
 

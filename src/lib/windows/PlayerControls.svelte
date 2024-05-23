@@ -2,23 +2,21 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { get, writable } from 'svelte/store';
     import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
+    import { currentlyPlaying } from './TrackInfo.svelte';
     import { attemptPlayNext } from './SongQueue.svelte';
 
-    let currentSong = '';
     let songProgress = writable(0);
-    let songDuration = writable(0);
     let isPlaying = writable(false);
 
     let intervalIndex;
 
-    export async function play(filePath, duration) {
-        if (!filePath) return;
+    export async function play(song) {
+        if (!song.file_path) return;
 
-        if (filePath != currentSong) {
-            await invoke('play', { filePath });
+        if (get(currentlyPlaying).file_path != song.file_path) {
+            await invoke('play', { filePath: song.file_path });
             songProgress.set(0);
-            songDuration.set(duration);
-            currentSong = filePath;
+            currentlyPlaying.set(song);
         }
 
         beginPlayBack();
@@ -44,7 +42,7 @@
     }
 
     songProgress.subscribe(async (value) => {
-        if (value >= get(songDuration)) {
+        if (value >= get(currentlyPlaying).duration) {
             clearInterval(intervalIndex);
             isPlaying.set(false);
             attemptPlayNext();
@@ -74,8 +72,8 @@
     </section>
 
     <section id="progress-controls">
-        <input type="range" name="progress-bar" id="progress-bar" min="0" max={$songDuration}>
-        <label for="progress-bar">{sec2time($songProgress)} / {sec2time($songDuration)}</label>
+        <input type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration}>
+        <label for="progress-bar">{sec2time($songProgress)} / {sec2time($currentlyPlaying.duration)}</label>
     </section>
 
     <section id="secondary-controls">
