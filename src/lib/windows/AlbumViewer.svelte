@@ -67,7 +67,7 @@
                     {#each songList as song}
                         <li>
                             <button on:click={() => dispatch("playSong", song)}>
-                                <p class="song-title">{song.title}</p>
+                                <p class="song-title"><span>{song.track_number}</span>{song.title}</p>
                             </button>
                         </li>
                     {/each}
@@ -120,16 +120,23 @@
         position: relative;
         width: 100vw;
         display: grid;
-        grid-template-columns: 25% 1fr;
+        grid-template-columns: 16rem 1fr;
+        padding: 1rem;
+        gap: 1rem;
     }
 
     .song-selector ul {
-        padding: 1rem;
-        list-style-type: decimal;
         column-count: auto;
+        column-width: 16rem;
+        column-gap: 2rem;
+    }
+    
+    .song-selector .song-title {
+        text-align: left;
+        font-weight: normal;
     }
 
-    .song-selector .song-title {
-        font-weight: normal;
+    .song-title span {
+        margin-right: 1rem;
     }
 </style>
