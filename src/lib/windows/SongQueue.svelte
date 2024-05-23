@@ -2,7 +2,6 @@
     import { invoke } from "@tauri-apps/api";
     import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { songQueue, currentSongIndex } from "../../lib/stores/queue.js";
-
 </script>
 
 <section class="song-queue">
@@ -29,7 +28,7 @@
 
 <style>
     .queue-list {
-        max-height: 48vh;
+        height: 40vh;
         overflow-y: auto;
     }
 

@@ -5,6 +5,7 @@
     import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
     import PlayerControls from './lib/windows/PlayerControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
+    import TrackInfo from './lib/windows/TrackInfo.svelte';
 
     let controls;
 
@@ -54,6 +55,7 @@
     </section>
     <section id="right-window">
         <SongQueue bind:this={songQueue} />
+        <TrackInfo />
     </section>
 </main>
 <PlayerControls bind:this={controls}/>
@@ -66,5 +68,11 @@
     main {
         display: grid;
         grid-template-columns: 15rem 1fr 20rem;
+    }
+
+    #right-window {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 </style>

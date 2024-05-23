@@ -16,6 +16,7 @@
     import { createEventDispatcher, onMount } from 'svelte';
     import { songQueue, currentSongIndex } from '../../lib/stores/queue.js';
     import { play } from './PlayerControls.svelte';
+    import { currentlyPlaying } from './TrackInfo.svelte';
 
     let albumViewer;
     let songList;
@@ -45,6 +46,7 @@
 
     async function playSongAndQueue(song) {
         play(song.file_path, song.duration);
+        currentlyPlaying.set(song);
         songQueue.set(songList);
         currentSongIndex.set(song.track_number);
     }
