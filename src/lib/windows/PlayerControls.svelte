@@ -1,7 +1,7 @@
 <script context="module">
     import { invoke } from '@tauri-apps/api/tauri';
     import { get, writable } from 'svelte/store';
-    import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
+    import SvelteLogo from 'virtual:icons/logos/svelte-icon';
     import { currentlyPlaying } from './TrackInfo.svelte';
     import { attemptPlayNext } from './SongQueue.svelte';
 
@@ -25,12 +25,12 @@
     }
 
     async function togglePlayback() {
-        isPlaying ? pausePlayback() : beginPlayBack();
+        get(isPlaying) ? pausePlayback() : beginPlayBack();
     }
 
     async function beginPlayBack() {
         clearInterval(intervalIndex);
-        invoke('resume');
+        await invoke('resume');
         intervalIndex = setInterval(async () => {
             songProgress.update((n) => n + 1);
         }, 1000);
@@ -51,14 +51,15 @@
 
     songProgress.subscribe(async (value) => {
         if (userSeeking) return;
-        if (progressBar) progressBar.value = value;
-        if (value >= get(currentlyPlaying).duration) {
-            clearInterval(intervalIndex);
-            isPlaying.set(false);
-            attemptPlayNext();
+        if (progressBar) {
+            progressBar.value = value;
+            if (value >= get(currentlyPlaying).duration) {
+                clearInterval(intervalIndex);
+                isPlaying.set(false);
+                attemptPlayNext();
+            }
+            updateProgressBarStyle();
         }
-
-        updateProgressBarStyle();
     });
 
     function updateProgressBarStyle() {
@@ -71,6 +72,7 @@
 <script>
     import { sec2time } from '../utils';
     import { onMount } from 'svelte';
+    import IconButton from '../comp/IconButton.svelte';
 
     onMount(() => {
         progressBar.addEventListener('input', (event) => {
@@ -90,19 +92,19 @@
 
 <footer>
     <section id="main-controls">
-        <button>
-            <BackwardStepSolid />
-        </button>
-        <button on:click={togglePlayback}>
+        <IconButton>
+            <SvelteLogo />
+        </IconButton>
+        <IconButton on:click={togglePlayback}>
             {#if $isPlaying}
-                <PauseSolid />
+                <!-- <PauseSolid size="xl" /> -->
             {:else}
-                <PlaySolid />
+                <!-- <PlaySolid size="xl" /> -->
             {/if}
-        </button>
-        <button>
-            <ForwardStepSolid />
-        </button>
+        </IconButton>
+        <IconButton>
+            <!-- <ForwardStepSolid size="xl" /> -->
+        </IconButton>
     </section>
 
     <section id="progress-controls">
@@ -112,15 +114,15 @@
     </section>
 
     <section id="secondary-controls">
-        <button>
-            <ShuffleOutline />
-        </button>
-        <button>
-            <ArrowsRepeatOutline />
-        </button>
-        <button>
-            <VolumeUpSolid />
-        </button>
+        <IconButton>
+            <!-- <ShuffleOutline size="xl" /> -->
+        </IconButton>
+        <IconButton>
+            <!-- <ArrowsRepeatOutline size="xl" /> -->
+        </IconButton>
+        <IconButton>
+            <!-- <VolumeUpSolid size="xl" /> -->
+        </IconButton>
         <input type="range" min="0" max="100" step="1" />
     </section>
 </footer>
@@ -136,13 +138,14 @@
         align-content: center;
         justify-content: space-between;
         padding: 0.5rem;
-        background-color: white;
         height: var(--controls-height);
+        background: var(--clr-gray-1);
     }
 
     footer > section {
         display: flex;
-        align-content: center;
+        align-items: center;
+        gap: 1rem;
     }
 
     label[for="progress-bar"] {

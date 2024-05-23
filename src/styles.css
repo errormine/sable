@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('/src/reset.css');
 
 @font-face {
     font-display: block;
@@ -38,7 +36,7 @@
 
 :root {
     --menu-bar-height: 1.5rem;
-    --controls-height: 3rem;
+    --controls-height: 4rem;
 
     --main-window-height: calc(100vh - calc(var(--controls-height) + var(--menu-bar-height)));
 
@@ -47,7 +45,11 @@
 
     --clr-primary: var(--clr-primary-light);
 
+    --clr-gray-0: #f8f9fa;
+    --clr-gray-1: #f1f3f5;
+    --clr-gray-3: #dee2e6;
     --clr-gray-5: #adb5bd;
+    --clr-gray-7: #495057;
     --clr-gray-9: #212529;
 }
 
@@ -59,6 +61,7 @@ html {
     line-height: 1.5;
     font-family: Nimbus, serif;
     color: var(--clr-gray-9);
+    background: white;
 }
 
 h1, h2, h3,
@@ -116,12 +119,13 @@ h2 {
 https://toughengineer.github.io/demo/slider-styler*/
 input[type=range].styled-slider {
     -webkit-appearance: none;
+    background-color: inherit;
     --track-height: 0.4rem;
-    --thumb-width: 0.8rem;
-    --thumb-height: 0.8rem;
+    --thumb-width: 1rem;
+    --thumb-height: 1rem;
     cursor: pointer;
 }
-  
+
 /*progress support*/
 input[type=range].styled-slider.slider-progress {
     --range: calc(var(--max) - var(--min));
@@ -141,7 +145,6 @@ input[type=range].styled-slider::-webkit-slider-thumb {
     border-radius: 50%;
     background: var(--clr-gray-9);
     border: none;
-    box-shadow: 0 0 2px black;
     margin-top: calc(var(--track-height) * 0.5 - var(--thumb-height) * 0.5);
 }
 
@@ -164,7 +167,6 @@ input[type=range].styled-slider::-moz-range-thumb {
     border-radius: 50%;
     background: var(--clr-gray-9);
     border: none;
-    box-shadow: 0 0 2px black;
 }
 
 input[type=range].styled-slider::-moz-range-track {
