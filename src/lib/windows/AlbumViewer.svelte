@@ -14,6 +14,7 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
     import { onMount } from 'svelte';
+    import { sec2time } from '../utils';
     import { play } from './PlayerControls.svelte';
     import { currentlyPlaying } from './TrackInfo.svelte';
     import { setQueue } from './SongQueue.svelte';
@@ -95,7 +96,11 @@
                     {#each songList as song}
                         <li class="song">
                             <button on:click={() => playSongAndQueue(song)}>
-                                <p class="song-title no-wrap"><span>{song.track_number}</span>{song.title}</p>
+                                <p class="song-title no-wrap">
+                                    <span class="track-number">{song.track_number}</span>
+                                    {song.title}
+                                    <span class="duration">{sec2time(song.duration)}</span>
+                                </p>
                             </button>
                         </li>
                     {/each}
@@ -148,7 +153,8 @@
 
     .song-selector .song-list {
         column-count: auto;
-        column-width: 20vw;
+        column-width: 22vw;
+        column-gap: 3rem;
     }
 
     .song-selector .song {
@@ -165,9 +171,13 @@
         font-weight: normal;
     }
 
-    .song-title span {
+    .song-title .track-number {
         display: inline-block;
         margin-right: 1.5rem;
         width: 2ch;
+    }
+
+    .song-title .duration {
+        float: right;
     }
 </style>
