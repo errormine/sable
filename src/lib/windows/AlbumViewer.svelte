@@ -26,6 +26,7 @@
             // Show song selector
             target.parentNode.appendChild(songSelector);
             resizeSongSelector(target);
+            albumViewer.scrollTo(0, songSelector.parentNode.offsetTop - 25);
         } else {
             activeAlbum = null;
         }
@@ -46,6 +47,7 @@
 
     onMount(() => {
         addEventListener('resize', () => {
+            // TODO: fix errors when parent node doesn't exist
             resizeSongSelector(songSelector.parentNode);
         });
     });
@@ -96,6 +98,7 @@
         max-height: calc(100vh - 4rem);
         overflow-y: scroll;
         overflow-x: hidden;
+        scroll-behavior: smooth;
     }
 
     .album-viewer > ul {
