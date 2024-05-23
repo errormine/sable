@@ -64,7 +64,7 @@
                             <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
                         </section>
                         <p class="title no-wrap"><strong>{album.title}</strong></p>
-                        <p>{album.artist}</p>
+                        <p class="no-wrap">{album.artist}</p>
                     </button>
                 </li>
             {/each}
