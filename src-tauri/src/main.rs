@@ -111,7 +111,7 @@ fn get_albums() -> String {
 
     match db {
         Ok(db) => {
-            let mut stmt = db.prepare("SELECT title, artist, cover_path FROM album").unwrap();
+            let mut stmt = db.prepare("SELECT title, artist, cover_path FROM album ORDER BY artist, title").unwrap();
             let mut rows = stmt.query(params![]).unwrap();
             
             let mut albums_json = Vec::new();
