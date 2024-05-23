@@ -1,3 +1,15 @@
+<script context="module">
+    import { writable } from 'svelte/store';
+
+    let albums = writable([]);
+
+    export async function refreshLibrary() {
+        await invoke('get_albums').then(albumsJSON => {
+            albums.set(JSON.parse(albumsJSON));
+        });
+    }
+</script>
+
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
@@ -6,17 +18,9 @@
     import { play } from './PlayerControls.svelte';
 
     let albumViewer;
-    let albums;
     let songList;
     let songSelector;
     let activeAlbum;
-
-    export async function refreshLibrary() {
-        await invoke('get_albums').then(albumsJSON => {
-            albums = JSON.parse(albumsJSON);
-            console.log(albums);
-        });
-    }
 
     async function selectAlbum(target, album) {
         if (activeAlbum != album) {
@@ -61,9 +65,9 @@
 </script>
 
 <section bind:this={albumViewer} class="album-viewer">
-    {#if albums}
+    {#if $albums}
         <ul>
-            {#each albums as album}
+            {#each $albums as album}
                 <li class="album">
                     <button on:click={(e) => selectAlbum(e.currentTarget, album)}>
                         <section class="cover-wrapper">

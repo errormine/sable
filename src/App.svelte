@@ -2,11 +2,10 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
-    import AlbumViewer from './lib/windows/AlbumViewer.svelte';
+    import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
     import PlayerControls from './lib/windows/PlayerControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
 
-    let albumViewer;
     let controls;
 
     let loadingSongs = false;
@@ -27,13 +26,15 @@
             await listen('songs_registered', (event) => {
                 if (event.payload.message == "done") {
                     loadingSongs = false;
-                    albumViewer.refreshLibrary();
+                    refreshLibrary();
                     return;
                 }
                 songsRegistered = event.payload.message;
             });
         }
     }
+
+    refreshLibrary();
 </script>
 
 <header id="menu-bar">
@@ -41,7 +42,7 @@
         <p>Loading songs: {songsRegistered}/{totalSongs}</p>
     {:else}
         <button on:click={openFile}>Open file</button>
-        <button on:click={() => albumViewer.refreshLibrary()}>Refresh library</button>
+        <button on:click={refreshLibrary}>Refresh library</button>
     {/if}
 </header>
 <main>
@@ -49,7 +50,7 @@
 
     </section>
     <section id="middle-window">
-        <AlbumViewer bind:this={albumViewer} />
+        <AlbumViewer />
     </section>
     <section id="right-window">
         <SongQueue bind:this={songQueue} />
