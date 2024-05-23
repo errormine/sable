@@ -3,9 +3,10 @@
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
-    import PlayerControls from './lib/windows/PlayerControls.svelte';
+    import PlayerControls, { stopPlayback } from './lib/windows/PlayerControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
+    import { onMount } from 'svelte';
 
     let controls;
 
@@ -35,7 +36,10 @@
         }
     }
 
-    refreshLibrary();
+    onMount(() => {
+        refreshLibrary();
+        stopPlayback();
+    })
 </script>
 
 <header id="menu-bar">
@@ -67,7 +71,7 @@
 
     main {
         display: grid;
-        grid-template-columns: 15rem 1fr 20rem;
+        grid-template-columns: 0 1fr 20rem;
     }
 
     #right-window {

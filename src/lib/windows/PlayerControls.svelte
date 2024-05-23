@@ -43,6 +43,12 @@
         isPlaying.set(false);
     }
 
+    export async function stopPlayback() {
+        await invoke('stop');
+        clearInterval(intervalIndex);
+        isPlaying.set(false);
+    }
+
     songProgress.subscribe(async (value) => {
         if (userSeeking) return;
         if (progressBar) progressBar.value = value;

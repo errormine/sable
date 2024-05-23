@@ -46,6 +46,7 @@ fn init_audio_player() {
             audio::player::add_to_queue,
             audio::player::pause,
             audio::player::resume,
+            audio::player::stop,
             audio::player::seek,
             audio::player::skip_forward,
             audio::player::skip_backward,

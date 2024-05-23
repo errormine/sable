@@ -58,6 +58,7 @@ html {
     letter-spacing: 0.05ch;
     line-height: 1.5;
     font-family: Nimbus, serif;
+    color: var(--clr-gray-9);
 }
 
 h1, h2, h3,
@@ -118,6 +119,7 @@ input[type=range].styled-slider {
     --track-height: 0.4rem;
     --thumb-width: 0.8rem;
     --thumb-height: 0.8rem;
+    cursor: pointer;
 }
   
 /*progress support*/
@@ -141,7 +143,6 @@ input[type=range].styled-slider::-webkit-slider-thumb {
     border: none;
     box-shadow: 0 0 2px black;
     margin-top: calc(var(--track-height) * 0.5 - var(--thumb-height) * 0.5);
-    cursor: pointer;
 }
 
 input[type=range].styled-slider::-webkit-slider-runnable-track {

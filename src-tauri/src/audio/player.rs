@@ -44,6 +44,11 @@ pub fn resume(state: tauri::State<MusicPlayer>) {
 }
 
 #[tauri::command]
+pub fn stop(state: tauri::State<MusicPlayer>) {
+    state.sink.stop();
+}
+
+#[tauri::command]
 pub fn seek(position: String, state: tauri::State<MusicPlayer>) {
     let position: u64 = position.parse().unwrap();
     let duration = std::time::Duration::from_secs(position);
