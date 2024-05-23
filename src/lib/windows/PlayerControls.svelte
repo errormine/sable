@@ -4,26 +4,19 @@
     import { ArrowsRepeatOutline, BackwardStepSolid, ForwardStepSolid, PauseSolid, PlaySolid, ShuffleOutline, StopSolid, VolumeUpSolid } from 'flowbite-svelte-icons';
 
     let currentSong = '';
-    let songProgress = 0;
-    let songDuration = 0;
+    let songProgress = writable(0);
+    let songDuration = writable(0);
     let isPlaying = writable(false);
 
     let progressInterval;
-
-    function sec2time(seconds) {
-        let minutes = Math.floor(seconds / 60);
-        let secs = Math.floor(seconds % 60);
-
-        return `${minutes}:${secs < 10 ? '0' + secs : secs}`;
-    };
 
     export async function play(filePath, duration) {
         if (!filePath) return;
 
         if (filePath != currentSong) {
             await invoke('play', { filePath });
-            songProgress = 0;
-            songDuration = duration;
+            songProgress.set(0);
+            songDuration.set(duration);
             currentSong = filePath;
         }
 
@@ -38,7 +31,7 @@
         clearInterval(progressInterval);
         await invoke('resume');
         progressInterval = setInterval(async () => {
-            songProgress += 1;
+            songProgress.update((n) => n + 1);
         }, 1000);
         isPlaying.set(true);
     }
@@ -48,6 +41,15 @@
         clearInterval(progressInterval);
         isPlaying.set(false);
     }
+</script>
+
+<script>
+    function sec2time(seconds) {
+        let minutes = Math.floor(seconds / 60);
+        let secs = Math.floor(seconds % 60);
+
+        return `${minutes}:${secs < 10 ? '0' + secs : secs}`;
+    };
 </script>
 
 <footer>
@@ -68,8 +70,8 @@
     </section>
 
     <section id="progress-controls">
-        <input type="range" name="progress-bar" id="progress-bar" min="0" max={songDuration}>
-        <label for="progress-bar">{sec2time(songProgress)} / {sec2time(songDuration)}</label>
+        <input type="range" name="progress-bar" id="progress-bar" min="0" max={$songDuration}>
+        <label for="progress-bar">{sec2time($songProgress)} / {sec2time($songDuration)}</label>
     </section>
 
     <section id="secondary-controls">
