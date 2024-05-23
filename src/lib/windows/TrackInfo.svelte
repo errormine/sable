@@ -9,7 +9,7 @@
 </script>
 
 <section class="track-info">
-    <p>Trank Information</p>
+    <p>Track Information</p>
     {#if $currentlyPlaying}
             <section>
                 <p>Title: {$currentlyPlaying.title}</p>
