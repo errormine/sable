@@ -73,9 +73,9 @@
         {#if songList && activeAlbum != null}
             <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
             <section class="album-info">
-                <header>
+                <header class="mb-05">
                     <h2>{activeAlbum.title}</h2>
-                    <p>{activeAlbum.artist}</p>
+                    <p class="subtitle">{activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
                     {#each songList as song}
