@@ -11,7 +11,8 @@
         songs = newSongs;
         currentSongIndex = offset;
 
-        dispatch('playSong', songs[currentSongIndex]);
+        // track numbers are 1-indexed
+        dispatch('playSong', songs[currentSongIndex - 1]);
     }
 </script>
 
