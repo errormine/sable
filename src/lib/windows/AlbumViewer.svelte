@@ -25,7 +25,7 @@
 
             // Show song selector
             target.parentNode.appendChild(songSelector);
-            resizeSongSelector(target);
+            resizeSongSelector(target.parentNode);
             albumViewer.scrollTo(0, songSelector.parentNode.offsetTop - 25);
         } else {
             activeAlbum = null;
@@ -41,7 +41,8 @@
 
     function resizeSongSelector(offsetNode) {
         // Hack to keep the song selector the correct size
-        songSelector.style.left = -offsetNode.offsetLeft + 'px';
+        let difference = albumViewer.offsetLeft;
+        songSelector.style.left = -offsetNode.offsetLeft + difference + 'px';
         songSelector.style.width = albumViewer.clientWidth + 'px';
     }
 
@@ -80,9 +81,9 @@
                     <p class="subtitle">{activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
-                    {#each songList as song}
+                    {#each songList as song, index}
                         <li class="song">
-                            <button on:click={() => dispatch("playSong", song)}>
+                            <button on:click={() => dispatch("queueFresh", { songs: songList, offset: index})}>
                                 <p class="song-title"><span>{song.track_number}</span>{song.title}</p>
                             </button>
                         </li>
@@ -142,7 +143,7 @@
 
     .song-selector .song-list {
         column-count: auto;
-        column-width: 25vw;
+        column-width: 20vw;
     }
 
     .song-selector .song {
