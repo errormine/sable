@@ -28,8 +28,8 @@
 </section>
 
 <style>
-    .song-queue {
-        max-height: 50vh;
+    .queue-list {
+        max-height: 48vh;
         overflow-y: auto;
     }
 
