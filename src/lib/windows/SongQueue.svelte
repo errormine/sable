@@ -17,9 +17,9 @@
                 <li class="song-item">
                     <!-- Evil!!! -->
                     <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
-                    <section>
-                        <p>{song.title}</p>
-                        <p>{song.artist}</p>
+                    <section class="no-wrap">
+                        <p class="no-wrap">{song.title}</p>
+                        <p class="no-wrap">{song.artist}</p>
                     </section>
                 </li>
             {/each}
@@ -39,7 +39,7 @@
         display: grid;
         grid-template-columns: auto 1fr;
         gap: 0.5rem;
-        padding: 0.25rem 1rem;
+        padding: 0.25rem;
     }
 
     .song-item img {

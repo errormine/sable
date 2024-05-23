@@ -63,7 +63,7 @@
                         <section class="cover-wrapper">
                             <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
                         </section>
-                        <p class="title"><strong>{album.title}</strong></p>
+                        <p class="title no-wrap"><strong>{album.title}</strong></p>
                         <p>{album.artist}</p>
                     </button>
                 </li>
@@ -84,7 +84,7 @@
                     {#each songList as song, index}
                         <li class="song">
                             <button on:click={() => dispatch("queueFresh", { songs: songList, offset: index})}>
-                                <p class="song-title"><span>{song.track_number}</span>{song.title}</p>
+                                <p class="song-title no-wrap"><span>{song.track_number}</span>{song.title}</p>
                             </button>
                         </li>
                     {/each}
@@ -124,13 +124,6 @@
     .album-viewer img {
         width: 100%;
         border-radius: 0.25rem;
-    }
-
-    .album-viewer .title,
-    .song-selector .song-title {
-        overflow-x: hidden;
-        text-overflow: ellipsis;
-        text-wrap: nowrap;
     }
 
     .song-selector {

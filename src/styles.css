@@ -66,6 +66,12 @@ h2 {
 }
 
 /* Utility classes */
+.no-wrap {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+}
+
 .mt-05 {
     margin-top: 0.5rem;
 }
