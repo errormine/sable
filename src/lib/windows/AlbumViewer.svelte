@@ -18,11 +18,10 @@
     }
 
     async function selectAlbum(target, album) {
-        let selection = { _element: target, meta: album };
 
-        if (activeAlbum != selection) {
+        if (activeAlbum != album) {
             loadSongs(album.title, album.artist);
-            activeAlbum = selection;
+            activeAlbum = album;
 
             // Show song selector
             target.parentNode.appendChild(songSelector);
@@ -60,10 +59,10 @@
     {/if}
     <section bind:this={songSelector} class="song-selector">
         {#if songList && activeAlbum != null}
-            <img class="large-album-cover" src={convertFileSrc(activeAlbum.meta.cover_path)} alt="">
+            <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
             <section class="album-info">
-                <h2>{activeAlbum.meta.title}</h2>
-                <ul>
+                <h2>{activeAlbum.title}</h2>
+                <ol>
                     {#each songList as song}
                         <li>
                             <button on:click={() => dispatch("playSong", song)}>
@@ -71,7 +70,7 @@
                             </button>
                         </li>
                     {/each}
-                </ul>
+                </ol>
             </section>
         {/if}
     </section>
@@ -125,9 +124,9 @@
         gap: 1rem;
     }
 
-    .song-selector ul {
+    .song-selector ol {
         column-count: auto;
-        column-width: 16rem;
+        column-width: 20rem;
         column-gap: 2rem;
     }
     
@@ -137,6 +136,8 @@
     }
 
     .song-title span {
-        margin-right: 1rem;
+        display: inline-block;
+        margin-right: 1.5rem;
+        width: 2ch;
     }
 </style>
