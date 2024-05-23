@@ -39,6 +39,11 @@
         });
     }
 
+    async function playSongAndQueue(song) {
+        dispatch("playSong", song);
+        dispatch("queueFresh", { songs: songList, offset: song.track_number});
+    }
+
     function resizeSongSelector(offsetNode) {
         // Hack to keep the song selector the correct size
         let difference = albumViewer.offsetLeft;
@@ -83,7 +88,7 @@
                 <ol class="song-list">
                     {#each songList as song}
                         <li class="song">
-                            <button on:click={() => dispatch("queueFresh", { songs: songList, offset: song.track_number})}>
+                            <button on:click={() => playSongAndQueue(song)}>
                                 <p class="song-title no-wrap"><span>{song.track_number}</span>{song.title}</p>
                             </button>
                         </li>

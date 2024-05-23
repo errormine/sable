@@ -28,6 +28,12 @@ pub fn play(file_path: String, state: tauri::State<MusicPlayer>) {
 }
 
 #[tauri::command]
+pub fn add_to_queue(file_path: String, state: tauri::State<MusicPlayer>) {
+    let source = get_source(file_path);
+    state.sink.append(source);
+}
+
+#[tauri::command]
 pub fn pause(state: tauri::State<MusicPlayer>) {
     state.sink.pause();
 }

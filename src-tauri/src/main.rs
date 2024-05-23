@@ -43,6 +43,7 @@ fn init_audio_player() {
         })
         .invoke_handler(tauri::generate_handler![
             audio::player::play,
+            audio::player::add_to_queue,
             audio::player::pause,
             audio::player::resume,
             audio::player::seek,

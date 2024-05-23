@@ -1,4 +1,5 @@
 <script>
+    import { invoke } from "@tauri-apps/api";
     import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { createEventDispatcher } from "svelte";
 
@@ -7,12 +8,19 @@
     let songs;
     let currentSongIndex;
 
-    export function fresh(newSongs, offset = 1) {
+    export async function fresh(newSongs, offset = 1) {
         songs = newSongs;
-        currentSongIndex = offset;
+        currentSongIndex = 0;
 
-        // track numbers are 1-indexed
-        dispatch('playSong', songs[currentSongIndex - 1]);
+        while (currentSongIndex < offset) {
+            songs.shift();
+            currentSongIndex++;
+        }
+
+        for (let song of songs) {
+            console.log(`Adding ${song.title} to queue`);
+            await invoke('add_to_queue', { filePath: song.file_path });
+        }
     }
 </script>
 
