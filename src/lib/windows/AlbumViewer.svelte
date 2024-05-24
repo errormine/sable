@@ -95,11 +95,9 @@
                     {#each songList as song}
                         <li class="song">
                             <button on:click={() => playSongAndQueue(song)}>
-                                <p class="song-title no-wrap">
-                                    <span class="track-number">{song.track_number}</span>
-                                    {song.title}
-                                    <span class="duration">{sec2time(song.duration)}</span>
-                                </p>
+                                <span class="track-number">{song.track_number}</span>
+                                <p class="song-title no-wrap">{song.title}</p>
+                                <span class="duration">{sec2time(song.duration)}</span>
                             </button>
                         </li>
                     {/each}
@@ -132,9 +130,10 @@
         width: 100%;
     }
 
-    .album-viewer .cover-wrapper {
+    .cover-wrapper {
         aspect-ratio: 1 / 1;
         object-fit: scale-down;
+        margin-bottom: 0.5rem;
     }
     
     .album-viewer img {
@@ -155,28 +154,29 @@
         column-width: 22vw;
         column-gap: 3rem;
     }
-
-    .song-selector .song {
-        padding: 0.1rem 0.5rem;
+    
+    .song-selector .song button {
+        display: grid;
+        grid-template-columns: 3ch 1fr auto;
+        padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
+        gap: 1.5rem;
     }
-
-    .song-selector .song:hover {
+    
+    .song-selector .song button:hover {
         outline: 1px solid black;
     }
     
-    .song-selector .song-title {
+    .song-selector .song * {
+        display: inline;
         text-align: left;
+    }
+    
+    .song .song-title {
         font-weight: normal;
     }
 
-    .song-title .track-number {
-        display: inline-block;
-        margin-right: 1.5rem;
-        width: 2ch;
-    }
-
-    .song-title .duration {
+    .song .duration {
         float: right;
     }
 </style>

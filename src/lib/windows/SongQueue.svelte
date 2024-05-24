@@ -33,8 +33,8 @@
                         <!-- Evil!!! -->
                         <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
                         <section class="no-wrap">
-                            <p class="no-wrap"><strong>{song.title}</strong></p>
-                            <p class="no-wrap">{song.artist}</p>
+                            <p class="title no-wrap"><strong>{song.title}</strong></p>
+                            <p class="artist no-wrap">{song.artist}</p>
                         </section>
                     </li>
                 {/if}

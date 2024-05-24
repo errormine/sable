@@ -1,7 +1,10 @@
 <script context="module">
     import { invoke } from '@tauri-apps/api/tauri';
     import { get, writable } from 'svelte/store';
-    import SvelteLogo from 'virtual:icons/logos/svelte-icon';
+    import IonIosPlay from 'virtual:icons/ion/ios-play';
+    import IonIosPause from 'virtual:icons/ion/ios-pause';
+    import IonIosSkipBackward from 'virtual:icons/ion/ios-skipbackward';
+    import IonIosSkipforward from 'virtual:icons/ion/ios-skipforward';
     import { currentlyPlaying } from './TrackInfo.svelte';
     import { attemptPlayNext } from './SongQueue.svelte';
 
@@ -93,17 +96,17 @@
 <footer>
     <section id="main-controls">
         <IconButton>
-            <SvelteLogo />
+            <IonIosSkipBackward />
         </IconButton>
         <IconButton on:click={togglePlayback}>
             {#if $isPlaying}
-                <!-- <PauseSolid size="xl" /> -->
+                <IonIosPause/>
             {:else}
-                <!-- <PlaySolid size="xl" /> -->
+                <IonIosPlay/>
             {/if}
         </IconButton>
         <IconButton>
-            <!-- <ForwardStepSolid size="xl" /> -->
+            <IonIosSkipforward/>
         </IconButton>
     </section>
 

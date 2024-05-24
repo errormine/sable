@@ -138,7 +138,7 @@ fn get_albums() -> String {
 #[tauri::command]
 fn get_songs_by_album(album: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    let mut stmt = db.prepare("SELECT * FROM song WHERE album = ?1 AND artist = ?2").unwrap();
+    let mut stmt = db.prepare("SELECT * FROM song WHERE album = ?1 AND artist = ?2 ORDER BY track_number").unwrap();
     let mut rows = stmt.query(params![album, artist]).unwrap();
     
     let mut songs_json = Vec::new();

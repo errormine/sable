@@ -1,22 +1,25 @@
-<button on:click>
+<script>
+    export let size = '2rem';
+</script>
+
+<button on:click class="icon-button" style="width: {size}; height: {size};">
     <slot />
 </button>
 
 <style>
+    :global(.icon-button > svg) {
+        width: 100%;
+        height: 100%;
+    }
+
     button {
         display: block;
-        width: min-content;
-        height: min-content;
         border-radius: 0.25rem;
         transition: opacity 200ms;
+        padding: 2px;
     }
 
     button:hover {
         opacity: 0.8;
-    }
-
-    button:active {
-        opacity: 1;
-        background: var(--clr-gray-5);
     }
 </style>
