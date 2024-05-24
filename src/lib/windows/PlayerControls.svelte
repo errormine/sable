@@ -128,7 +128,7 @@
         <IconButton>
             <IonVolumeHigh/>
         </IconButton>
-        <Slider color="var(--clr-gray-9)" name="volume-slider" id="volume-slider" min={0} max={100} value={80} />
+        <Slider width="6rem" color="var(--clr-gray-9)" name="volume-slider" id="volume-slider" min={0} max={100} value={80} />
     </section>
 </footer>
 
@@ -145,6 +145,7 @@
         padding: 0.5rem 1.5rem;
         height: var(--controls-height);
         background: var(--clr-gray-1);
+        gap: 1rem;
     }
 
     footer > section {

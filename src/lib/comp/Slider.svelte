@@ -4,6 +4,7 @@
 
     export let input = null;
     export let color = 'var(--clr-primary)';
+    export let width = '100%';
 
     export let name = '';
     export let id = '';
@@ -13,7 +14,7 @@
     export let step = 1;
     export let value = 0;
     
-    let style = `--accent-color: ${color}; --min: ${min}; --max: ${max}; --value: ${value};`;
+    let style = `--width: ${width}; --accent-color: ${color}; --min: ${min}; --max: ${max}; --value: ${value};`;
 
     export function setValue(newValue) {
         input.value = newValue;
@@ -33,6 +34,6 @@
 
 <style>
     input {
-        width: 100%;
+        width: var(--width);
     }
 </style>
