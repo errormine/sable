@@ -28,7 +28,8 @@ export async function play(song) {
 }
 
 export async function togglePlayback() {
-    isPlaying ? pausePlayback() : beginPlayBack();
+    if (get(currentSong).file_path == '') return;
+    get(isPlaying) ? pausePlayback() : beginPlayBack();
 }
 
 export async function beginPlayBack() {
