@@ -174,7 +174,7 @@ input[type=range].styled-slider::-webkit-slider-runnable-track {
 }
 
 input[type=range].styled-slider.slider-progress::-webkit-slider-runnable-track {
-    background: linear-gradient(var(--clr-primary),var(--clr-primary)) 0/var(--sx) 100% no-repeat, var(--clr-gray-5);
+    background: linear-gradient(var(--accent-color),var(--accent-color)) 0/var(--sx) 100% no-repeat, var(--clr-gray-5);
 }
 
 /*mozilla*/

@@ -79,13 +79,15 @@
     import { sec2time } from '../utils';
     import { onMount } from 'svelte';
     import IconButton from '../comp/IconButton.svelte';
+    import Slider from '../comp/Slider.svelte';
 
+    
     onMount(() => {
         progressBar.addEventListener('input', (event) => {
             userSeeking = true;
             updateProgressBarStyle();
         });
-
+        
         progressBar.addEventListener('mouseup', async (event) => {
             let newTime = event.target.value;
             console.log(`Seeking to : ${newTime}`);
@@ -115,7 +117,7 @@
 
     <section id="progress-controls">
         <label for="progress-bar">{sec2time($songProgress)}</label>
-        <input bind:this={progressBar} class="styled-slider slider-progress" type="range" name="progress-bar" id="progress-bar" min="0" max={$currentlyPlaying.duration} />
+        <Slider bind:input={progressBar} name="progress-bar" id="progress-bar" min={0} max={$currentlyPlaying.duration || 100} value={0} />
         <p>{sec2time($currentlyPlaying.duration)}</p>
     </section>
 
@@ -129,7 +131,7 @@
         <IconButton>
             <IonVolumeHigh/>
         </IconButton>
-        <input type="range" min="0" max="100" step="1" />
+        <Slider name="volume-slider" id="volume-slider" min={0} max={100} value={80}/>
     </section>
 </footer>
 
@@ -158,7 +160,7 @@
         pointer-events: none;
     }
 
-    #progress-bar {
+    :global(#progress-bar) {
         width: 50vw;
         margin: 0 1rem;
     }
