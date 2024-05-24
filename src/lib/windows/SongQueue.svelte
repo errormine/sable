@@ -11,9 +11,8 @@
     }
 
     export async function attemptPlayNext() {
-        currentSongIndex.set(get(currentSongIndex) + 1);
-        songQueue.update((queue) => queue.slice(1));
-        let nextSong = get(songQueue)[0];
+        currentSongIndex.update((n) => n + 1);
+        let nextSong = get(songQueue)[get(currentSongIndex)];
         if (!nextSong) return;
         play(nextSong);
     }
