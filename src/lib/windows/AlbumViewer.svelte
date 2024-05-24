@@ -74,8 +74,8 @@
                         <section class="cover-wrapper">
                             <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
                         </section>
-                        <p class="title no-wrap"><strong>{album.title}</strong></p>
-                        <p class="no-wrap">{album.artist}</p>
+                        <p class="title no-wrap" title={album.title}><strong>{album.title}</strong></p>
+                        <p class="no-wrap" title={album.artist}>{album.artist}</p>
                     </button>
                 </li>
             {/each}
@@ -83,7 +83,7 @@
     {:else}
         <p>No albums found</p>
     {/if}
-    <section bind:this={songSelector} class="song-selector">
+    <section bind:this={songSelector} class="song-selector" class:hidden={activeAlbum == null}>
         {#if songList && activeAlbum != null}
             <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
             <section class="album-info">
@@ -94,7 +94,7 @@
                 <ol class="song-list">
                     {#each songList as song}
                         <li class="song">
-                            <button on:click={() => playSongAndQueue(song)}>
+                            <button on:click={() => playSongAndQueue(song)} title={song.title}>
                                 <span class="track-number">{song.track_number}</span>
                                 <p class="song-title no-wrap">{song.title}</p>
                                 <span class="duration">{sec2time(song.duration)}</span>

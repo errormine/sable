@@ -98,6 +98,10 @@ img {
 }
 
 /* Utility classes */
+.hidden {
+    display: none !important;
+}
+
 .no-wrap {
     overflow-x: hidden;
     text-overflow: ellipsis;
