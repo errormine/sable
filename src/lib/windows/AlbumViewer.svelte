@@ -15,10 +15,10 @@
     import { convertFileSrc } from '@tauri-apps/api/tauri';
     import { onMount } from 'svelte';
     import { sec2time } from '../utils';
-    import { play, setQueue } from '../stores/audioPlayer';
+    import { currentSong, play, setQueue } from '../stores/audioPlayer';
 
     let albumViewer;
-    let songList;
+    let songList = [];
     let songSelector;
     let activeAlbum;
 
@@ -42,7 +42,7 @@
         });
     }
 
-    async function playSongAndQueue(song) {
+    function playSongAndQueue(song) {
         play(song);
         setQueue(songList, song.track_number);
     }
@@ -91,7 +91,10 @@
                 <ol class="song-list">
                     {#each songList as song}
                         <li class="song">
-                            <button on:click={() => playSongAndQueue(song)} title={song.title}>
+                            <!-- so long!!!! -->
+                            <button title={song.title} 
+                                class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
+                                on:click={() => playSongAndQueue(song)}>
                                 <span class="track-number">{song.track_number}</span>
                                 <p class="song-title no-wrap">{song.title}</p>
                                 <span class="duration">{sec2time(song.duration)}</span>
@@ -110,17 +113,14 @@
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;
-        padding: 0.25rem;
+        padding: 0.5rem;
+        background: var(--clr-gray-1);
     }
 
     .album-viewer > ul {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
         gap: 1rem;
-    }
-
-    .album-viewer .album {
-        border-radius: 0.5rem;
     }
 
     .album button {
@@ -143,7 +143,11 @@
         display: grid;
         grid-template-columns: 16rem 1fr;
         padding: 1rem;
+        margin-top: 1rem;
         gap: 1rem;
+        background: linear-gradient(white, var(--clr-gray-3));
+        border-top: 1px solid var(--clr-gray-5);
+        border-bottom: 1px solid var(--clr-gray-5);
     }
 
     .song-selector .song-list {
@@ -158,10 +162,16 @@
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
         gap: 1.5rem;
+        transition: all 200ms;
     }
     
     .song-selector .song button:hover {
-        outline: 1px solid black;
+        opacity: 0.75;
+    }
+
+    :global(.song-selector .song button.active) {
+        outline: 1px solid var(--clr-gray-5);
+        background: linear-gradient(white, var(--clr-gray-3));
     }
     
     .song-selector .song * {

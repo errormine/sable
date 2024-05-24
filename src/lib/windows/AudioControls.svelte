@@ -111,6 +111,7 @@
         height: var(--controls-height);
         background: var(--clr-gray-1);
         gap: 1rem;
+        border-top: 1px solid var(--clr-gray-3);
     }
 
     footer > section {
