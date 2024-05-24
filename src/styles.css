@@ -48,6 +48,7 @@
     --clr-gray-1: #f1f3f5;
     --clr-gray-3: #dee2e6;
     --clr-gray-5: #adb5bd;
+    --clr-gray-6: #868e96;
     --clr-gray-7: #495057;
     --clr-gray-9: #212529;
 }
@@ -130,6 +131,30 @@ img {
 .mb-2 {
     margin-bottom: 2rem;
 }
+
+/* Scrollbars */
+/* width */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: var(--clr-gray-3);
+    border-radius: 8px;
+    margin: 0.5rem;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background: var(--clr-gray-5);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--clr-gray-7);
+} 
 
 /*generated with Input range slider CSS style generator (version 20211225)
 https://toughengineer.github.io/demo/slider-styler*/

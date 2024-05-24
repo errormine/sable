@@ -16,6 +16,7 @@
     import { onMount } from 'svelte';
     import { sec2time } from '../utils';
     import { currentSong, play, setQueue } from '../stores/audioPlayer';
+    import Window from '../comp/Window.svelte';
 
     let albumViewer;
     let songList = [];
@@ -62,50 +63,52 @@
     });
 </script>
 
-<section bind:this={albumViewer} class="album-viewer">
-    {#if $albums}
-        <ul>
-            {#each $albums as album}
-                <li class="album">
-                    <button on:click={(e) => selectAlbum(e.currentTarget, album)}>
-                        <section class="cover-wrapper">
-                            <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
-                        </section>
-                        <p class="title no-wrap" title={album.title}><strong>{album.title}</strong></p>
-                        <p class="no-wrap" title={album.artist}>{album.artist}</p>
-                    </button>
-                </li>
-            {/each}
-        </ul>
-    {:else}
-        <p>No albums found</p>
-    {/if}
-    <section bind:this={songSelector} class="song-selector" class:hidden={activeAlbum == null}>
-        {#if songList && activeAlbum != null}
-            <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
-            <section class="album-info">
-                <header class="mb-05">
-                    <h2>{activeAlbum.title}</h2>
-                    <p class="subtitle">{activeAlbum.artist}</p>
-                </header>
-                <ol class="song-list">
-                    {#each songList as song}
-                        <li class="song">
-                            <!-- so long!!!! -->
-                            <button title={song.title} 
-                                class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
-                                on:click={() => playSongAndQueue(song)}>
-                                <span class="track-number">{song.track_number}</span>
-                                <p class="song-title no-wrap">{song.title}</p>
-                                <span class="duration">{sec2time(song.duration)}</span>
-                            </button>
-                        </li>
-                    {/each}
-                </ol>
-            </section>
+<Window title="Albums">
+    <section bind:this={albumViewer} class="album-viewer">
+        {#if $albums}
+            <ul>
+                {#each $albums as album}
+                    <li class="album">
+                        <button on:click={(e) => selectAlbum(e.currentTarget, album)}>
+                            <section class="cover-wrapper">
+                                <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
+                            </section>
+                            <p class="title no-wrap" title={album.title}><strong>{album.title}</strong></p>
+                            <p class="no-wrap" title={album.artist}>{album.artist}</p>
+                        </button>
+                    </li>
+                {/each}
+            </ul>
+        {:else}
+            <p>No albums found</p>
         {/if}
+        <section bind:this={songSelector} class="song-selector" class:hidden={activeAlbum == null}>
+            {#if songList && activeAlbum != null}
+                <img class="large-album-cover" src={convertFileSrc(activeAlbum.cover_path)} alt="">
+                <section class="album-info">
+                    <header class="mb-05">
+                        <h2>{activeAlbum.title}</h2>
+                        <p class="subtitle">{activeAlbum.artist}</p>
+                    </header>
+                    <ol class="song-list">
+                        {#each songList as song}
+                            <li class="song">
+                                <!-- so long!!!! -->
+                                <button title={song.title} 
+                                    class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
+                                    on:click={() => playSongAndQueue(song)}>
+                                    <span class="track-number">{song.track_number}</span>
+                                    <p class="song-title no-wrap">{song.title}</p>
+                                    <span class="duration">{sec2time(song.duration)}</span>
+                                </button>
+                            </li>
+                        {/each}
+                    </ol>
+                </section>
+            {/if}
+        </section>
     </section>
-</section>
+</Window>
 
 <style>
     .album-viewer {
@@ -113,7 +116,7 @@
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;
-        padding: 0.5rem;
+        padding: 0 0.5rem;
         background: var(--clr-gray-1);
     }
 
