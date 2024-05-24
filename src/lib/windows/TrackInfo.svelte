@@ -1,16 +1,14 @@
 <script context="module">
-    import { writable } from "svelte/store";
+    import { convertFileSrc } from "@tauri-apps/api/tauri";
+    import { get, writable } from "svelte/store";
 
     export let currentlyPlaying = writable({
         title: "",
         artist: "",
         file_path: "",
-        duration: 0
+        cover_path: "",
+        duration: 0,
     });
-</script>
-
-<script>
-    import { convertFileSrc } from "@tauri-apps/api/tauri";
 </script>
 
 <section class="track-info">
@@ -20,7 +18,7 @@
                 <p>Title: {$currentlyPlaying.title}</p>
                 <p>Artist: {$currentlyPlaying.artist}</p>
             </section>
-            <img src={convertFileSrc($currentlyPlaying.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
+            <img src={convertFileSrc($currentlyPlaying.cover_path)} alt="">
     {:else}
         <p>Empty</p>
     {/if}

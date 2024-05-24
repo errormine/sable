@@ -5,6 +5,9 @@
     import IonIosPause from 'virtual:icons/ion/ios-pause';
     import IonIosSkipBackward from 'virtual:icons/ion/ios-skipbackward';
     import IonIosSkipforward from 'virtual:icons/ion/ios-skipforward';
+    import IonIosShuffle from 'virtual:icons/ion/ios-shuffle';
+    import IonIosRepeat from 'virtual:icons/ion/ios-repeat';
+    import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import { currentlyPlaying } from './TrackInfo.svelte';
     import { attemptPlayNext } from './SongQueue.svelte';
 
@@ -118,13 +121,13 @@
 
     <section id="secondary-controls">
         <IconButton>
-            <!-- <ShuffleOutline size="xl" /> -->
+            <IonIosShuffle/>
         </IconButton>
         <IconButton>
-            <!-- <ArrowsRepeatOutline size="xl" /> -->
+            <IonIosRepeat/>
         </IconButton>
         <IconButton>
-            <!-- <VolumeUpSolid size="xl" /> -->
+            <IonVolumeHigh/>
         </IconButton>
         <input type="range" min="0" max="100" step="1" />
     </section>
@@ -140,7 +143,7 @@
         width: 100%;
         align-content: center;
         justify-content: space-between;
-        padding: 0.5rem;
+        padding: 0.5rem 1.5rem;
         height: var(--controls-height);
         background: var(--clr-gray-1);
     }

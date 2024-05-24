@@ -138,6 +138,7 @@ fn get_albums() -> String {
 #[tauri::command]
 fn get_songs_by_album(album: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
+    let cover_path: String = db.query_row("SELECT cover_path FROM album WHERE title = ?1 AND artist = ?2", params![album, artist], |row| row.get(0)).unwrap();
     let mut stmt = db.prepare("SELECT * FROM song WHERE album = ?1 AND artist = ?2 ORDER BY track_number").unwrap();
     let mut rows = stmt.query(params![album, artist]).unwrap();
     
@@ -153,6 +154,7 @@ fn get_songs_by_album(album: String, artist: String) -> String {
 
         let song = json!({
             "file_path": file_path,
+            "cover_path": cover_path,
             "title": title,
             "artist": artist,
             "album": album,
