@@ -10,7 +10,7 @@
     import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
-    import { attemptPlayNext, currentSong, isPlaying, songProgress, stopPlayback, togglePlayback } from '../stores/audioPlayer';
+    import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, songProgress, stopPlayback, togglePlayback } from '../stores/audioPlayer';
     import { invoke } from '@tauri-apps/api/tauri';
 
     let progressBar;
@@ -46,7 +46,7 @@
 
 <footer>
     <section id="main-controls">
-        <IconButton>
+        <IconButton on:click={attemptPlayPrevious}>
             <IonIosSkipBackward />
         </IconButton>
         <IconButton on:click={togglePlayback}>
@@ -56,7 +56,7 @@
                 <IonIosPlay/>
             {/if}
         </IconButton>
-        <IconButton>
+        <IconButton on:click={attemptPlayNext}>
             <IonIosSkipforward/>
         </IconButton>
     </section>

@@ -67,3 +67,10 @@ export async function attemptPlayNext() {
     if (!nextSong) return;
     play(nextSong);
 }
+
+export async function attemptPlayPrevious() {
+    currentSongIndex.update((n) => n - 1);
+    let previousSong = get(songQueue)[get(currentSongIndex)];
+    if (!previousSong) return;
+    play(previousSong);
+}
