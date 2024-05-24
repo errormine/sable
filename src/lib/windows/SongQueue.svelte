@@ -31,7 +31,7 @@
                 {#if index > $currentSongIndex}
                     <li class="song-item">
                         <!-- Evil!!! -->
-                        <img src={convertFileSrc(song.file_path.replace(/[^/\\]*$/, 'Cover.jpg'))} alt="">
+                        <img src={convertFileSrc(song.cover_path)} alt="">
                         <section class="no-wrap">
                             <p class="title no-wrap"><strong>{song.title}</strong></p>
                             <p class="artist no-wrap">{song.artist}</p>

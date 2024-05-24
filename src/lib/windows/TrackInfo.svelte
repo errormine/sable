@@ -13,10 +13,10 @@
 
 <section class="track-info">
     <p>Track Information</p>
-    {#if $currentlyPlaying}
+    {#if $currentlyPlaying.title != '' && $currentlyPlaying.artist != ''}
             <section>
-                <p>Title: {$currentlyPlaying.title}</p>
-                <p>Artist: {$currentlyPlaying.artist}</p>
+                <p>{$currentlyPlaying.title}</p>
+                <p>{$currentlyPlaying.artist}</p>
             </section>
             <img src={convertFileSrc($currentlyPlaying.cover_path)} alt="">
     {:else}
