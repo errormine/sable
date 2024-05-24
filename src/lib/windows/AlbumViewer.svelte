@@ -41,7 +41,6 @@
     async function loadSongs(album, artist) {
         await invoke('get_songs_by_album', { album: album, artist: artist }).then(songsJSON => {
             songList = JSON.parse(songsJSON);
-            console.log(songList);
         });
     }
 
