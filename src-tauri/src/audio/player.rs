@@ -67,3 +67,10 @@ pub fn skip_forward(state: tauri::State<MusicPlayer>) {
 pub fn skip_backward(state: tauri::State<MusicPlayer>) {
     // TODO: Implement skipBackward
 }
+
+#[tauri::command]
+pub fn set_volume(volume: f32, state: tauri::State<MusicPlayer>) {
+    // This is because the slider in the UI goes from 0 to 100... it explodes if it I make it go from 0 to 1
+    let clamped = volume / 100.0;
+    state.sink.set_volume(clamped);
+}

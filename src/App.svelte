@@ -1,9 +1,15 @@
+<script context="module">
+    import { appConfigDir } from '@tauri-apps/api/path';
+
+    console.log(`APP CONFIG: ${await appConfigDir()}`);
+</script>
+
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
-    import PlayerControls from './lib/windows/PlayerControls.svelte';
+    import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
     import { onMount } from 'svelte';

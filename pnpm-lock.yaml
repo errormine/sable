@@ -11,6 +11,9 @@ importers:
       '@tauri-apps/api':
         specifier: ^1
         version: 1.5.6
+      tauri-settings:
+        specifier: ^0.3.5
+        version: 0.3.5
       unplugin-icons:
         specifier: ^0.19.0
         version: 0.19.0
@@ -650,6 +653,9 @@ packages:
     resolution: {integrity: sha512-N7m1YnoXtRf5wya5Gyx3TWuTddI4nAyayyIWFojiWV5IayDYNV5i2mRp/7qNGol4DtxEYxljmrbgp1HM6hUbmQ==}
     engines: {node: '>=16'}
 
+  tauri-settings@0.3.5:
+    resolution: {integrity: sha512-07v+i6ig+z1eWHm9WYAvOpFPM7afeKZZmM0egIY0aLSleaZy33zEiKmefNKI+G8ymOAJX/ZYN1N1cM2lyGOiJw==}
+
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
@@ -1280,6 +1286,8 @@ snapshots:
       locate-character: 3.0.0
       magic-string: 0.30.10
       periscopic: 3.1.0
+
+  tauri-settings@0.3.5: {}
 
   to-regex-range@5.0.1:
     dependencies:

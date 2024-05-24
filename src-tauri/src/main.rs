@@ -50,6 +50,7 @@ fn init_audio_player() {
             audio::player::seek,
             audio::player::skip_forward,
             audio::player::skip_backward,
+            audio::player::set_volume,
             register_songs,
             get_albums,
             get_songs_by_album
