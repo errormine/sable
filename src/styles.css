@@ -40,8 +40,7 @@
 
     --main-window-height: calc(100vh - calc(var(--controls-height) + var(--menu-bar-height)));
 
-    --clr-primary-light: #15aabf;
-    --clr-primary-dark: #c0eb75;
+    --clr-primary-light: #339af0;
 
     --clr-primary: var(--clr-primary-light);
 
