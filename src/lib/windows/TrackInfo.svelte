@@ -1,27 +1,15 @@
-<script context="module">
+<script>
     import { convertFileSrc } from "@tauri-apps/api/tauri";
-    import { get, writable } from "svelte/store";
-
-    export let currentlyPlaying = writable({
-        title: "",
-        artist: "",
-        file_path: "",
-        cover_path: "",
-        duration: 0,
-    });
+    import { currentSong } from "../stores/audioPlayer";
 </script>
 
 <section class="track-info">
     <p>Track Information</p>
-    {#if $currentlyPlaying.title != '' && $currentlyPlaying.artist != ''}
-            <section>
-                <p>{$currentlyPlaying.title}</p>
-                <p>{$currentlyPlaying.artist}</p>
-            </section>
-            <img src={convertFileSrc($currentlyPlaying.cover_path)} alt="">
-    {:else}
-        <p>Empty</p>
-    {/if}
+    <section>
+        <p>{$currentSong.title}</p>
+        <p>{$currentSong.artist}</p>
+    </section>
+    <img src={convertFileSrc($currentSong.cover_path)} alt="">
 </section>
 
 <style>

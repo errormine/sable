@@ -13,6 +13,8 @@
     export let max = 100;
     export let step = 1;
     export let value = 0;
+
+    export let disabled = false;
     
     let style = `--width: ${width}; --accent-color: ${color}; --min: ${min}; --max: ${max}; --value: ${value};`;
 
@@ -30,7 +32,7 @@
     });
 </script>
 
-<input bind:this={input} class="styled-slider slider-progress" type="range" {style} {name} {id} {min} {value} {max} {step} />
+<input bind:this={input} class="styled-slider slider-progress" type="range" {style} {name} {id} {min} {value} {max} {step} {disabled} />
 
 <style>
     input {

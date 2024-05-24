@@ -3,18 +3,15 @@
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
-    import PlayerControls, { stopPlayback } from './lib/windows/PlayerControls.svelte';
+    import PlayerControls from './lib/windows/PlayerControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
     import { onMount } from 'svelte';
-
-    let controls;
+    import { stopPlayback } from './lib/stores/audioPlayer';
 
     let loadingSongs = false;
     let totalSongs = 0;
     let songsRegistered = 0;
-
-    let songQueue;
 
     async function openFile() {
         const result = await open({ directory: true, multiple: false });
@@ -58,11 +55,11 @@
         <AlbumViewer />
     </section>
     <section id="right-window">
-        <SongQueue bind:this={songQueue} />
+        <SongQueue />
         <TrackInfo />
     </section>
 </main>
-<PlayerControls bind:this={controls}/>
+<PlayerControls />
 
 <style>
     #menu-bar {

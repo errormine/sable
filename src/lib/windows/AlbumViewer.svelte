@@ -15,9 +15,7 @@
     import { convertFileSrc } from '@tauri-apps/api/tauri';
     import { onMount } from 'svelte';
     import { sec2time } from '../utils';
-    import { play } from './PlayerControls.svelte';
-    import { currentlyPlaying } from './TrackInfo.svelte';
-    import { setQueue } from './SongQueue.svelte';
+    import { play, setQueue } from '../stores/audioPlayer';
 
     let albumViewer;
     let songList;

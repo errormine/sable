@@ -1,25 +1,6 @@
-<script context="module">
-    import { get, writable } from "svelte/store";
-    import { play } from "./PlayerControls.svelte";
-
-    let songQueue = writable([]);
-    let currentSongIndex = writable(0);
-
-    export function setQueue(songs, offset) {
-        songQueue.set(songs);
-        currentSongIndex.set(offset - 1);
-    }
-
-    export async function attemptPlayNext() {
-        currentSongIndex.update((n) => n + 1);
-        let nextSong = get(songQueue)[get(currentSongIndex)];
-        if (!nextSong) return;
-        play(nextSong);
-    }
-</script>
-
 <script>
     import { convertFileSrc } from "@tauri-apps/api/tauri";
+    import { songQueue, currentSongIndex } from "../stores/audioPlayer";
 </script>
 
 <section class="song-queue">

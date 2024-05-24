@@ -1,6 +1,6 @@
-<script context="module">
-    import { invoke } from '@tauri-apps/api/tauri';
-    import { get, writable } from 'svelte/store';
+<script>
+    import { sec2time } from '../utils';
+    import { onMount } from 'svelte';
     import IonIosPlay from 'virtual:icons/ion/ios-play';
     import IonIosPause from 'virtual:icons/ion/ios-pause';
     import IonIosSkipBackward from 'virtual:icons/ion/ios-skipbackward';
@@ -8,63 +8,22 @@
     import IonIosShuffle from 'virtual:icons/ion/ios-shuffle';
     import IonIosRepeat from 'virtual:icons/ion/ios-repeat';
     import IonVolumeHigh from 'virtual:icons/ion/volume-high';
-    import { currentlyPlaying } from './TrackInfo.svelte';
-    import { attemptPlayNext } from './SongQueue.svelte';
-
-    let songProgress = writable(0);
-    let isPlaying = writable(false);
-
-    let intervalIndex;
-    let userSeeking = false;
-
-    export async function play(song) {
-        if (!song.file_path) return;
-
-        if (get(currentlyPlaying) != song) {
-            console.log('Playing new song: ', song.title);
-            await invoke('play', { filePath: song.file_path });
-            songProgress.set(0);
-            currentlyPlaying.set(song);
-        }
-
-        beginPlayBack();
-    }
-
-    async function togglePlayback() {
-        get(isPlaying) ? pausePlayback() : beginPlayBack();
-    }
-
-    async function beginPlayBack() {
-        if (get(isPlaying)) return;
-        clearInterval(intervalIndex);
-        await invoke('resume');
-        intervalIndex = setInterval(async () => {
-            songProgress.update((n) => n + 1);
-        }, 1000);
-        isPlaying.set(true);
-    }
-
-    async function pausePlayback() {
-        await invoke('pause');
-        clearInterval(intervalIndex);
-        isPlaying.set(false);
-    }
-
-    export async function stopPlayback() {
-        await invoke('stop');
-        clearInterval(intervalIndex);
-        isPlaying.set(false);
-    }
-
-</script>
-
-<script>
-    import { sec2time } from '../utils';
-    import { onMount } from 'svelte';
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
+    import { attemptPlayNext, currentSong, isPlaying, songProgress, stopPlayback, togglePlayback } from '../stores/audioPlayer';
+    import { invoke } from '@tauri-apps/api/tauri';
 
     let progressBar;
+    let userSeeking = false;
+    
+    songProgress.subscribe(async (value) => {
+        if (userSeeking || !progressBar) return;
+        progressBar.setValue(value);
+        if (value >= $currentSong.duration) {
+            stopPlayback();
+            attemptPlayNext();
+        }
+    });
 
     onMount(() => {
         if (!progressBar) return;
@@ -81,16 +40,6 @@
             await invoke('seek', { position: newTime });
             songProgress.set(Number(newTime));
             userSeeking = false;
-        });
-
-        songProgress.subscribe(async (value) => {
-            if (userSeeking) return;
-            progressBar.setValue(value);
-            if (value >= $currentlyPlaying.duration) {
-                clearInterval(intervalIndex);
-                isPlaying.set(false);
-                attemptPlayNext();
-            }
         });
     });
 </script>
@@ -114,8 +63,8 @@
 
     <section id="progress-controls">
         <label for="progress-bar">{sec2time($songProgress)}</label>
-        <Slider bind:this={progressBar} name="progress-bar" id="progress-bar" min={0} max={$currentlyPlaying.duration || 999} />
-        <p>{sec2time($currentlyPlaying.duration)}</p>
+        <Slider bind:this={progressBar} name="progress-bar" id="progress-bar" min={0} max={$currentSong.duration || 999} />
+        <p>{sec2time($currentSong.duration)}</p>
     </section>
 
     <section id="secondary-controls">
