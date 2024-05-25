@@ -57,9 +57,13 @@ export async function stopPlayback() {
 export const songQueue = writable([]);
 export const currentSongIndex = writable(0);
 
-export function setQueue(songs, offset) {
+export function setQueue(songs, offset = 0) {
     songQueue.set(songs);
     currentSongIndex.set(offset - 1);
+}
+
+export async function addToQueue(songs) {
+    songQueue.update((queue) => queue.concat(songs));
 }
 
 export async function attemptPlayNext() {

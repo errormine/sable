@@ -14,9 +14,11 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { getContext, onMount, setContext } from 'svelte';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import { setQueue, addToQueue, attemptPlayNext } from '../stores/audioPlayer';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
+    import { set } from 'tauri-settings';
 
     const albumViewer = writable(null);
     setContext('albumViewer', albumViewer);
@@ -29,7 +31,7 @@
 
     async function selectAlbum(target, album) {
         if ($activeAlbum != album) {
-            loadSongs(album.title, album.artist);
+            $songList = await loadSongs(album.title, album.artist);
             $activeAlbum = album;
             
             // Show song selector
@@ -50,15 +52,25 @@
         selectedAlbum = album;
     }
 
-    async function removeAlbum(album) {
-        await invoke('remove_album', { album: album.title, artist: album.artist });
+    async function removeSelectedAlbum() {
+        await invoke('remove_album', { album: selectedAlbum.title, artist: selectedAlbum.artist });
         await refreshLibrary();
     }
 
+    async function playSelectedAlbum() {
+        setQueue(await loadSongs(selectedAlbum.title, selectedAlbum.artist));
+        attemptPlayNext();
+    }
+
+    async function addSelectedToQueue() {
+        addToQueue(await loadSongs(selectedAlbum.title, selectedAlbum.artist));
+    }
+
     async function loadSongs(album, artist) {
-        await invoke('get_songs_by_album', { album: album, artist: artist }).then(songsJSON => {
-            $songList = JSON.parse(songsJSON);
-        });
+        return await invoke('get_songs_by_album', { album: album, artist: artist })
+            .then(songsJSON => {
+                return JSON.parse(songsJSON);
+            });
     }
 </script>
 
@@ -81,7 +93,14 @@
         <SongSelector bind:this={songSelector} />
     </section>
     <ContextMenu bind:this={albumContextMenu}>
-        <Item on:click={() => removeAlbum(selectedAlbum)}>Remove from library</Item>
+        <Item on:click={playSelectedAlbum}>Play Next</Item>
+        <Item on:click={addSelectedToQueue}>Add to Queue</Item>
+        <Item>Shuffle Play</Item>
+        <Divider />
+        <Item>Edit</Item>
+        <Item on:click={removeSelectedAlbum}>Remove</Item>
+        <Divider />
+        <Item>Open File Location</Item>
     </ContextMenu>
 </Window>
 
