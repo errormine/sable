@@ -30,6 +30,27 @@
     font-style: italic;
 }
 
+@font-face {
+    font-display: block;
+    font-family: "Poppins";
+    src: url(fonts/Poppins-Regular.ttf) format('truetype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-display: block;
+    font-family: "Poppins";
+    src: url(fonts/Poppins-SemiBold.ttf) format('truetype');
+    font-weight: 500;
+}
+
+@font-face {
+    font-display: block;
+    font-family: "Poppins";
+    src: url(fonts/Poppins-Bold.ttf) format('truetype');
+    font-weight: bold;
+}
+
 * {
     box-sizing: border-box;
     user-select: none;
@@ -60,9 +81,13 @@ html, body {
     text-align: left;
 
     line-height: 1.3;
-    font-family: Nimbus, serif;
+    font-family: Nimbus, sans-serif;
     color: var(--clr-gray-9);
     background: white;
+}
+
+header {
+    font-family: Poppins, sans-serif;
 }
 
 h1, h2, h3,
@@ -97,6 +122,11 @@ img {
     display: block;
     max-width: 100%;
     height: auto;
+}
+
+input, button {
+    font-family: inherit;
+    line-height: inherit;
 }
 
 /* Utility classes */

@@ -88,6 +88,13 @@ export async function attemptPlayPrevious() {
     play(previousSong);
 }
 
+export async function jumpToSong(index) {
+    currentSongIndex.set(index);
+    let song = get(songQueue)[index];
+    if (!song) return;
+    play(song);
+}
+
 export const loopMode = writable(false);
 export const shuffleMode = writable(false);
 

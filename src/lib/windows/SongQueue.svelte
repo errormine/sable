@@ -1,7 +1,7 @@
 <script>
     import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { onMount } from "svelte";
-    import { songQueue, currentSongIndex } from "../stores/audioPlayer";
+    import { songQueue, currentSongIndex, jumpToSong } from "../stores/audioPlayer";
     import { sec2time } from "../utils";
     import Window from "../comp/Window.svelte";
 
@@ -35,7 +35,7 @@
             <ol bind:this={queueList} class="queue-list">
                 {#each $songQueue as song, index}
                 <li class="song-item" class:active={index == $currentSongIndex}>
-                    <button>
+                    <button on:click={() => jumpToSong(index)}>
                         <img src={convertFileSrc(song.cover_path)} alt="">
                         <section class="no-wrap">
                             <p class="title no-wrap" title={song.title}><strong>{song.title}</strong></p>
