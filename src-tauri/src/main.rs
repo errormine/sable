@@ -53,6 +53,7 @@ fn init_audio_player() {
             audio::player::set_volume,
             register_songs,
             get_albums,
+            remove_album,
             get_songs_by_album
         ])
         .run(tauri::generate_context!())
@@ -134,6 +135,13 @@ fn get_albums() -> String {
         },
         Err(_) => return String::from("[]")
     };
+}
+
+#[tauri::command]
+fn remove_album(album: String, artist: String) {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    db.execute("DELETE FROM song WHERE album = ?1 AND artist = ?2", params![album, artist]).unwrap();
+    db.execute("DELETE FROM album WHERE title = ?1 AND artist = ?2", params![album, artist]).unwrap();
 }
 
 #[tauri::command]

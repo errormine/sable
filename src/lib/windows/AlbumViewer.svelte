@@ -13,6 +13,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { getContext, onMount, setContext } from 'svelte';
+    import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
@@ -30,7 +31,7 @@
         if ($activeAlbum != album) {
             loadSongs(album.title, album.artist);
             $activeAlbum = album;
-
+            
             // Show song selector
             let albumListItem = target.parentNode;
             albumListItem.appendChild(songSelector.domNode);
@@ -39,6 +40,19 @@
         } else {
             $activeAlbum = null;
         }
+    }
+
+    let albumContextMenu;
+    let selectedAlbum;
+    
+    function showAlbumMenu(e, album) {
+        albumContextMenu.show(e);
+        selectedAlbum = album;
+    }
+
+    async function removeAlbum(album) {
+        await invoke('remove_album', { album: album.title, artist: album.artist });
+        await refreshLibrary();
     }
 
     async function loadSongs(album, artist) {
@@ -54,7 +68,10 @@
             <ul>
                 {#each $albums as album}
                     <li class="album">
-                        <Album on:click={(e) => selectAlbum(e.currentTarget, album)} {album}/>
+                        <Album 
+                            on:click={(e) => selectAlbum(e.currentTarget, album)} 
+                            on:contextmenu={(e) => showAlbumMenu(e, album)}
+                            {album}/>
                     </li>
                 {/each}
             </ul>
@@ -63,6 +80,9 @@
         {/if}
         <SongSelector bind:this={songSelector} />
     </section>
+    <ContextMenu bind:this={albumContextMenu}>
+        <Item on:click={() => removeAlbum(selectedAlbum)}>Remove from library</Item>
+    </ContextMenu>
 </Window>
 
 <style>

@@ -4,7 +4,7 @@
     export let album;
 </script>
 
-<button on:click>
+<button on:click on:contextmenu>
     <section class="cover-wrapper">
         <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
     </section>
