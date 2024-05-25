@@ -62,6 +62,13 @@ export function setQueue(songs, offset = 0) {
     currentSongIndex.set(offset - 1);
 }
 
+export function insertIntoQueue(song, index = 0) {
+    songQueue.update((queue) => {
+        queue.splice(index, 0, song);
+        return queue;
+    });
+}
+
 export async function addToQueue(songs) {
     songQueue.update((queue) => queue.concat(songs));
 }

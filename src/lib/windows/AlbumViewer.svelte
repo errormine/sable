@@ -14,7 +14,7 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { getContext, onMount, setContext } from 'svelte';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
-    import { setQueue, addToQueue, attemptPlayNext } from '../stores/audioPlayer';
+    import { setQueue, addToQueue, attemptPlayNext, isPlaying, currentSong } from '../stores/audioPlayer';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
@@ -29,7 +29,8 @@
     const songList = writable(null);
     setContext('songList', songList);
 
-    async function selectAlbum(target, album) {
+    async function displayAlbumDetails(e, album) {
+        let target = e.currentTarget;
         if ($activeAlbum != album) {
             $songList = await loadSongs(album.title, album.artist);
             $activeAlbum = album;
@@ -40,8 +41,15 @@
             songSelector.updateSize(albumListItem);
             $albumViewer.scrollTo(0, target.offsetTop - 40);
         } else {
+            // Ignore double clicks
+            if (e.detail > 1) return;
             $activeAlbum = null;
         }
+    }
+
+    async function playAlbum(album) {
+        setQueue(await loadSongs(album.title, album.artist));
+        attemptPlayNext();
     }
 
     let albumContextMenu;
@@ -57,9 +65,11 @@
         await refreshLibrary();
     }
 
-    async function playSelectedAlbum() {
+    async function playSelectedAlbumNext() {
         setQueue(await loadSongs(selectedAlbum.title, selectedAlbum.artist));
-        attemptPlayNext();
+        if ($currentSong.title == '') {
+            attemptPlayNext();
+        }
     }
 
     async function addSelectedToQueue() {
@@ -81,7 +91,8 @@
                 {#each $albums as album}
                     <li class="album">
                         <Album 
-                            on:click={(e) => selectAlbum(e.currentTarget, album)} 
+                            on:click={(e) => displayAlbumDetails(e, album)} 
+                            on:dblclick={() => playAlbum(album)}
                             on:contextmenu={(e) => showAlbumMenu(e, album)}
                             {album}/>
                     </li>
@@ -93,7 +104,7 @@
         <SongSelector bind:this={songSelector} />
     </section>
     <ContextMenu bind:this={albumContextMenu}>
-        <Item on:click={playSelectedAlbum}>Play Next</Item>
+        <Item on:click={playSelectedAlbumNext}>Play Next</Item>
         <Item on:click={addSelectedToQueue}>Add to Queue</Item>
         <Item>Shuffle Play</Item>
         <Divider />
