@@ -115,7 +115,7 @@
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;
-        padding: 0 0.5rem;
+        padding: 0.5rem;
         background: var(--clr-gray-1);
     }
 
