@@ -1,8 +1,9 @@
 <svelte:options accessors />
 <script>
-    import { convertFileSrc } from '@tauri-apps/api/tauri';
+    import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+    import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { sec2time } from '../utils';
-    import { currentSong, play, setQueue } from '../stores/audioPlayer';
+    import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
 
     export let domNode = null;
@@ -18,11 +19,6 @@
         domNode.style.left = -offsetNode.offsetLeft + difference + 'px';
         domNode.style.width = owner.clientWidth + 'px';
     }
-
-    function playSongAndQueue(song) {
-        play(song);
-        setQueue($songList, song.track_number);
-    }
     
     onMount(() => {
         owner = domNode.parentNode;
@@ -32,6 +28,31 @@
             updateSize(domNode.parentNode);
         });
     });
+
+    let songContextMenu;
+    let selectedSong;
+
+    function showSongMenu(e, song) {
+        songContextMenu.show(e);
+        selectedSong = song;
+    }
+
+    function playSongAndQueue(song) {
+        play(song);
+        setQueue($songList, song.track_number);
+    }
+
+    function playSelectedSongNext() {
+        insertIntoQueue(selectedSong);
+    }
+
+    function addSelectedToQueue() {
+        addToQueue([selectedSong]);
+    }
+
+    async function removeSelectedSong() {
+        await invoke('remove_song', selectedSong);
+    }
 </script>
 
 <section bind:this={domNode} class="song-selector" class:hidden={$activeAlbum == null}>
@@ -48,7 +69,8 @@
                         <!-- so long!!!! -->
                         <button title={song.title} 
                             class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
-                            on:click={() => playSongAndQueue(song)}>
+                            on:click={() => playSongAndQueue(song)}
+                            on:contextmenu={(e) => showSongMenu(e, song)}>
                             <span class="track-number">{song.track_number}</span>
                             <p class="song-title no-wrap">{song.title}</p>
                             <span class="duration">{sec2time(song.duration)}</span>
@@ -58,6 +80,15 @@
             </ol>
         </section>
     {/if}
+    <ContextMenu bind:this={songContextMenu}>
+        <Item on:click={playSelectedSongNext}>Play Next</Item>
+        <Item on:click={addSelectedToQueue}>Add to Queue</Item>
+        <Divider />
+        <Item>Edit</Item>
+        <Item on:click={removeSelectedSong}>Remove</Item>
+        <Divider />
+        <Item>Open File Location</Item>
+    </ContextMenu>
 </section>
 
 <style>

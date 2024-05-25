@@ -62,9 +62,10 @@ export function setQueue(songs, offset = 0) {
     currentSongIndex.set(offset - 1);
 }
 
-export function insertIntoQueue(song, index = 0) {
+export function insertIntoQueue(song) {
     songQueue.update((queue) => {
-        queue.splice(index, 0, song);
+        queue.splice(get(currentSongIndex) + 1, 0, song);
+        console.log(queue);
         return queue;
     });
 }
