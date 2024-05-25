@@ -75,3 +75,14 @@ export async function attemptPlayPrevious() {
     if (!previousSong) return;
     play(previousSong);
 }
+
+export const loopMode = writable(false);
+export const shuffleMode = writable(false);
+
+export async function toggleLoopMode() {
+    loopMode.update((n) => !n);
+}
+
+export async function toggleShuffleMode() {
+    shuffleMode.update((n) => !n);
+}

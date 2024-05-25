@@ -36,6 +36,9 @@ importers:
       svelte:
         specifier: ^4.2.8
         version: 4.2.17
+      svelte-contextmenu:
+        specifier: ^1.0.2
+        version: 1.0.2
       vite:
         specifier: ^5.0.0
         version: 5.2.11
@@ -642,6 +645,9 @@ packages:
   strip-final-newline@2.0.0:
     resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
     engines: {node: '>=6'}
+
+  svelte-contextmenu@1.0.2:
+    resolution: {integrity: sha512-S4mSFnafXhhrDMvP45W7+8+LH45tGFyigMJav4bpc19rD2L3awMJLHg5PY9EAvF8OU9lIMiaUMxEgFlTK/kqPQ==}
 
   svelte-hmr@0.16.0:
     resolution: {integrity: sha512-Gyc7cOS3VJzLlfj7wKS0ZnzDVdv3Pn2IuVeJPk9m2skfhcu5bq3wtIZyQGggr7/Iim5rH5cncyQft/kRLupcnA==}
@@ -1265,6 +1271,8 @@ snapshots:
   string-argv@0.3.2: {}
 
   strip-final-newline@2.0.0: {}
+
+  svelte-contextmenu@1.0.2: {}
 
   svelte-hmr@0.16.0(svelte@4.2.17):
     dependencies:
