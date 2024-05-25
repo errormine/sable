@@ -2,7 +2,7 @@ import "./styles.css";
 import App from "./App.svelte";
 
 const app = new App({
-  target: document.getElementById("app"),
+  target: document.getElementsByTagName("body")[0],
 });
 
 export default app;

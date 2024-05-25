@@ -38,7 +38,8 @@
     --menu-bar-height: 1.5rem;
     --controls-height: 4rem;
 
-    --main-window-height: calc(100vh - calc(var(--controls-height) + var(--menu-bar-height)));
+    --offset: calc(var(--controls-height) + var(--menu-bar-height));
+    --main-window-height: calc(100vh - var(--offset));
 
     --clr-primary-light: #339af0;
 
@@ -142,7 +143,6 @@ img {
 ::-webkit-scrollbar-track {
     background: var(--clr-gray-3);
     border-radius: 8px;
-    margin: 0.5rem;
 }
 
 /* Handle */

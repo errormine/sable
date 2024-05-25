@@ -14,6 +14,7 @@
     import TrackInfo from './lib/windows/TrackInfo.svelte';
     import { onMount } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
+    import WindowStack from './lib/comp/WindowStack.svelte';
 
     let loadingSongs = false;
     let totalSongs = 0;
@@ -54,16 +55,14 @@
     {/if}
 </header>
 <main>
-    <section id="left-window">
+    <section id="left">
 
     </section>
-    <section id="middle-window">
-        <AlbumViewer />
-    </section>
-    <section id="right-window">
+    <AlbumViewer />
+    <WindowStack id="right">
         <SongQueue />
         <TrackInfo />
-    </section>
+    </WindowStack>
 </main>
 <PlayerControls />
 
@@ -73,15 +72,15 @@
     }
 
     main {
-        max-height: var(--main-window-height);
+        height: var(--main-window-height);
         display: grid;
         grid-template-columns: 0 1fr 20rem;
-        padding: 0.5rem;
         background: var(--clr-gray-1);
     }
 
-    #right-window {
-        display: grid;
-        grid-template-rows: 50vh auto;
+    main > section {
+        position: relative;
+        height: 100%;
+        margin: 0;
     }
 </style>

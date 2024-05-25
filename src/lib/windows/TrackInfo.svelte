@@ -14,10 +14,7 @@
 
 <style>
     .track-info {
-        position: absolute;
-        bottom: 0;
         background: var(--clr-gray-1);
-        padding: 0.5rem;
         height: min-content;
     }
 </style>

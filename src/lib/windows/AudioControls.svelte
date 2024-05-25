@@ -99,10 +99,6 @@
 
 <style>
     footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
         display: flex;
         width: 100%;
         align-content: center;

@@ -6,20 +6,28 @@
     <header>
         <p>{title}</p>
     </header>
-    <slot/>
+    <slot />
 </section>
 
 <style>
     .window {
-        max-height: 100%;
-        position: relative;
+        height: inherit;
     }
 
     .window header {
         background: var(--clr-gray-1);
-        padding: 0.25rem 0.5rem;
         text-align: center;
         text-transform: uppercase;
         color: var(--clr-gray-6);
+        height: var(--menu-bar-height);
+    }
+
+    .window header p {
+        display: inline;
+        vertical-align: middle;
+    }
+
+    .window > :global(section) {
+        max-height: calc(100% - var(--menu-bar-height));
     }
 </style>

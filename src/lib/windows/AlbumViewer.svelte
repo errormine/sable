@@ -31,7 +31,7 @@
             // Show song selector
             target.parentNode.appendChild(songSelector);
             resizeSongSelector(target.parentNode);
-            albumViewer.scrollTo(0, songSelector.parentNode.offsetTop - 25);
+            albumViewer.scrollTo(0, songSelector.parentNode.offsetTop - 40);
         } else {
             activeAlbum = null;
         }
@@ -112,7 +112,6 @@
 
 <style>
     .album-viewer {
-        max-height: var(--main-window-height);
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-behavior: smooth;

@@ -32,7 +32,6 @@
     .song-queue {
         background: var(--clr-gray-1);
         padding: 0 0.5rem;
-        max-height: 100%;
         overflow-y: auto;
     }
 
