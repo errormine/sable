@@ -141,8 +141,13 @@
         display: inline;
         text-align: left;
     }
+
+    .song .track-number {
+        color: var(--clr-gray-7);
+    }
     
     .song .duration {
-        float: right;
+        color: var(--clr-gray-7);
+        text-align: right;
     }
 </style>
