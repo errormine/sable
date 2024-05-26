@@ -127,13 +127,13 @@
         gap: 1.5rem;
         transition: all 200ms;
         width: 100%;
+    
+        &.active {
+            background: var(--clr-gray-0);
+        }
         
         &:hover {
             background: var(--clr-gray-5);
-        }
-    
-        & :global(button.active) {
-            background: var(--clr-gray-0);
         }
     
         & .track-number {
