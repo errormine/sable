@@ -6,8 +6,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "music-player",
-    "version": "0.0.0"
+    "productName": "sable",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -37,7 +37,7 @@
     },
     "windows": [
       {
-        "title": "music-player",
+        "title": "Sable",
         "width": 1280,
         "height": 800
       }
