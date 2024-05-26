@@ -117,8 +117,7 @@
 
 <style>
     .album-viewer {
-        overflow-y: scroll;
-        overflow-x: hidden;
+        overflow-y: auto;
         scroll-behavior: smooth;
         padding: 0.5rem;
         background: var(--clr-gray-1);

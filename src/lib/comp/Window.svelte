@@ -11,7 +11,7 @@
 
 <style>
     .window {
-        height: inherit;
+        max-height: inherit;
     
         & > header {
             background: var(--clr-gray-1);
@@ -25,9 +25,10 @@
             display: inline;
             vertical-align: middle;
         }
-    
-        & > :global(section) {
-            max-height: calc(100% - var(--menu-bar-height));
-        }
+    }
+
+    /* Svelte doesn't seem to play nice if this is nested */
+    .window > :global(section) {
+        max-height: calc(100% - var(--menu-bar-height));
     }
 </style>

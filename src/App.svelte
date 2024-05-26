@@ -72,14 +72,13 @@
     }
 
     main {
-        height: var(--main-window-height);
+        max-height: var(--main-window-height);
         display: grid;
         grid-template-columns: 0 1fr 20rem;
         background: var(--clr-gray-1);
 
         & > section {
             position: relative;
-            height: 100%;
             margin: 0;
         }
     }
