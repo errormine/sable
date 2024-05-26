@@ -108,12 +108,12 @@
         background: var(--clr-gray-1);
         gap: 1rem;
         border-top: 1px solid var(--clr-gray-3);
-    }
 
-    footer > section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+        & > section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
     }
 
     label[for="progress-bar"] {

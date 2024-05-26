@@ -126,6 +126,11 @@ img {
 input, button {
     font-family: inherit;
     line-height: inherit;
+    text-align: left;
+}
+
+button.center {
+    text-align: center;
 }
 
 /* Utility classes */

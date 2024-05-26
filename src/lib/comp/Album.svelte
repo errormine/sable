@@ -4,7 +4,7 @@
     export let album;
 </script>
 
-<button on:click on:dblclick on:contextmenu>
+<button class="album" on:click on:dblclick on:contextmenu>
     <section class="cover-wrapper">
         <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
     </section>
@@ -15,29 +15,29 @@
 </button>
 
 <style>
-    button {
+    .album {
         width: 100%;
-    }
 
-    .cover-wrapper {
-        aspect-ratio: 1 / 1;
-        object-fit: scale-down;
-    }
-    
-    img {
-        width: 100%;
-        border-radius: 0.25rem;
+        & .cover-wrapper {
+            aspect-ratio: 1 / 1;
+            object-fit: scale-down;
+        }
+        
+        & img {
+            width: 100%;
+            border-radius: 0.25rem;
+        }
     }
 
     .album-info {
         padding: 0.5rem;
-    }
 
-    .title {
-        font-size: 1.1rem;
-    }
-
-    .artist {
-        color: var(--clr-gray-7);
+        & .title {
+            font-size: 1.1rem;
+        }
+    
+        & .artist {
+            color: var(--clr-gray-7);
+        }
     }
 </style>

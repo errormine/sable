@@ -19,9 +19,9 @@
         border-radius: 0.25rem;
         transition: opacity 200ms;
         padding: 2px;
-    }
-
-    button:hover {
-        opacity: 0.8;
+    
+        &:hover {
+            opacity: 0.8;
+        }
     }
 </style>

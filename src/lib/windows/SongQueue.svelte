@@ -35,7 +35,7 @@
             <ol bind:this={queueList} class="queue-list">
                 {#each $songQueue as song, index}
                 <li class="song-item" class:active={index == $currentSongIndex}>
-                    <button on:click={() => jumpToSong(index)}>
+                    <button class="song" on:click={() => jumpToSong(index)}>
                         <img src={convertFileSrc(song.cover_path)} alt="">
                         <section class="no-wrap">
                             <p class="title no-wrap" title={song.title}><strong>{song.title}</strong></p>
@@ -64,37 +64,37 @@
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
-    }
 
-    .song-item {
-        color: var(--clr-gray-7);
-        border-radius: 0.25rem;
-        overflow: hidden;
-    }
+        & .song-item {
+            color: var(--clr-gray-7);
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+    
+        & .song-item.active {
+            color: var(--clr-gray-9);
+            background: var(--clr-gray-3);
+        }
 
-    .song-item.active {
-        color: var(--clr-gray-9);
-        background: var(--clr-gray-3);
     }
-
-    .song-item button {
+    
+    .song {
         display: grid;
         grid-template-columns: auto 1fr 5ch;
         align-items: center;
         gap: 0.5rem;
         padding: 0.25rem;
         width: 100%;
-        text-align: left;
         color: inherit;
-    }
-
-    img {
-        width: 3rem;
-        height: 3rem;
-        border-radius: 0.25rem;
-    }
-
-    .song-item .duration {
-        text-align: right;
+    
+        & img {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.25rem;
+        }
+    
+        & .duration {
+            text-align: right;
+        }
     }
 </style>

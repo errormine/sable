@@ -122,11 +122,11 @@
         scroll-behavior: smooth;
         padding: 0.5rem;
         background: var(--clr-gray-1);
-    }
 
-    .album-viewer > ul {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-        gap: 1rem;
+        & > ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+            gap: 1rem;
+        }
     }
 </style>

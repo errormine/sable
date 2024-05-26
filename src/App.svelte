@@ -76,11 +76,11 @@
         display: grid;
         grid-template-columns: 0 1fr 20rem;
         background: var(--clr-gray-1);
-    }
 
-    main > section {
-        position: relative;
-        height: 100%;
-        margin: 0;
+        & > section {
+            position: relative;
+            height: 100%;
+            margin: 0;
+        }
     }
 </style>
