@@ -3,7 +3,7 @@
 
 mod audio;
 
-use std::{fs, path::Path, sync::mpsc, thread};
+use std::{error::Error, fs::{self, File}, path::Path, sync::mpsc, thread};
 use jwalk::WalkDir;
 use rusqlite::{params, Connection, Result};
 use serde_json::json;
@@ -53,8 +53,10 @@ fn init_audio_player() {
             audio::player::set_volume,
             register_songs,
             get_albums,
+            get_songs_by_album,
             remove_album,
-            get_songs_by_album
+            remove_song,
+            update_song_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -138,13 +140,6 @@ fn get_albums() -> String {
 }
 
 #[tauri::command]
-fn remove_album(album: String, artist: String) {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    db.execute("DELETE FROM song WHERE album = ?1 AND artist = ?2", params![album, artist]).unwrap();
-    db.execute("DELETE FROM album WHERE title = ?1 AND artist = ?2", params![album, artist]).unwrap();
-}
-
-#[tauri::command]
 fn get_songs_by_album(album: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
     let cover_path: String = db.query_row("SELECT cover_path FROM album WHERE title = ?1 AND artist = ?2", params![album, artist], |row| row.get(0)).unwrap();
@@ -195,4 +190,48 @@ fn get_song_files(dir: &Path) -> Vec<PathBuf> {
     }
 
     return songs;
+}
+
+#[tauri::command]
+fn remove_album(album: String, artist: String) {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    db.execute("DELETE FROM song WHERE album = ?1 AND artist = ?2", params![album, artist]).unwrap();
+    db.execute("DELETE FROM album WHERE title = ?1 AND artist = ?2", params![album, artist]).unwrap();
+}
+
+#[tauri::command]
+fn remove_song(file_path: String) {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    db.execute("DELETE FROM song WHERE file_path = ?1", params![file_path]).unwrap();
+}
+
+#[tauri::command]
+fn update_song_info(file_path: String, title: String, artist: String, album: String) -> String {
+    let result = update_metadata(&file_path, title, artist, album);
+
+    match result {
+        Ok(_) => {
+            remove_song(file_path);
+            return String::from("success");
+        },
+        Err(e) => {
+            println!("Error updating metadata: {}", e);
+            return String::from("error");
+        }
+    };
+}
+
+fn update_metadata(file_path: &str, title: String, artist: String, album: String) -> Result<(), Box<dyn Error>> {
+    let mut tag = Tag::read_from_path(&file_path)?;
+    let file = File::open(file_path)?;
+
+    tag.set_title(title);
+    tag.set_artist(artist);
+    tag.set_album(album);
+    // tag.set_track(track_number);
+    // tag.set_disc(disc_number);
+    tag.write_to_file(file, tag.version())?;
+    // called `Result::unwrap()` on an `Err` value: Io(Os { code: 5, kind: PermissionDenied, message: "Access is denied." })
+
+    Ok(())
 }

@@ -59,7 +59,7 @@ export const currentSongIndex = writable(0);
 
 export function setQueue(songs, offset = 0) {
     songQueue.set(songs);
-    currentSongIndex.set(offset - 1);
+    currentSongIndex.set(offset);
 }
 
 export function insertIntoQueue(song) {

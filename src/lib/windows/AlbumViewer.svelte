@@ -14,11 +14,14 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { getContext, onMount, setContext } from 'svelte';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import IonIosClose from 'virtual:icons/ion/ios-close';
     import { setQueue, addToQueue, attemptPlayNext, isPlaying, currentSong } from '../stores/audioPlayer';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
     import { set } from 'tauri-settings';
+
+    let albumEditDialog;
 
     const albumViewer = writable(null);
     setContext('albumViewer', albumViewer);
@@ -108,7 +111,7 @@
         <Item on:click={addSelectedToQueue}>Add to Queue</Item>
         <Item>Shuffle Play</Item>
         <Divider />
-        <Item>Edit</Item>
+        <Item on:click={() => albumEditDialog.showModal()}>Edit</Item>
         <Item on:click={removeSelectedAlbum}>Remove</Item>
         <Divider />
         <Item>Open File Location</Item>

@@ -2,9 +2,11 @@
 <script>
     import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import IonIosClose from 'virtual:icons/ion/ios-close';
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
+    import { addToast } from '../stores/notifications';
 
     export let domNode = null;
 
@@ -22,13 +24,14 @@
     
     onMount(() => {
         owner = domNode.parentNode;
-
+        
         addEventListener('resize', () => {
             // TODO: fix errors when parent node doesn't exist
             updateSize(domNode.parentNode);
         });
     });
 
+    let songEditDialog;
     let songContextMenu;
     let selectedSong;
 
@@ -37,9 +40,9 @@
         selectedSong = song;
     }
 
-    function playSongAndQueue(song) {
+    function playSongAndQueue(song, offset) {
         play(song);
-        setQueue($songList, song.track_number);
+        setQueue($songList, offset);
     }
 
     function playSelectedSongNext() {
@@ -53,8 +56,61 @@
     async function removeSelectedSong() {
         await invoke('remove_song', selectedSong);
     }
+
+    function showEditDialog() {
+        let title = songEditDialog.querySelector('#title');
+        let artist = songEditDialog.querySelector('#artist');
+        let album = songEditDialog.querySelector('#album');
+
+        title.value = selectedSong.title;
+        artist.value = selectedSong.artist;
+        album.value = selectedSong.album;
+
+        songEditDialog.showModal();
+    }
+
+    async function updateSong() {
+        let songDir = selectedSong.file_path.split('/').slice(0, -1).join('/');
+        let formData = new FormData(songEditDialog.querySelector('form'));
+
+        await invoke('update_song_info', {
+            filePath: selectedSong.file_path,
+            title: formData.get('title'),
+            artist: formData.get('artist'),
+            album: formData.get('album'),
+        }).then(async (result) => {
+            if (result != "success") {
+                addToast({ message: "Failed to update song info", type: "error", timeout: 3000 });
+                return;
+            }
+            await invoke('register_songs', { dir: songDir});
+        });
+
+        songEditDialog.close();
+    }
 </script>
 
+<dialog bind:this={songEditDialog} class="song-editor">
+    <header>
+        <p>Edit</p>
+        <button on:click={() => songEditDialog.close()}><IonIosClose/></button>
+    </header>
+    <form>
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title">
+
+        <label for="artist">Artist</label>
+        <input type="text" id="artist" name="artist">
+
+        <label for="album">Album</label>
+        <input type="text" id="album" name="album">
+
+        <label for="year">Year</label>
+        <input type="number" id="year" name="year">
+        
+        <button type="button" on:click={updateSong}>Save</button>
+    </form>
+</dialog>
 <section bind:this={domNode} class="album-info" class:hidden={$activeAlbum == null}>
     <section class="album-info-wrapper">
         {#if $songList && $activeAlbum != null}
@@ -65,12 +121,12 @@
                     <p class="subtitle">{$activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
-                    {#each $songList as song}
+                    {#each $songList as song, index}
                         <li class="song-item">
                             <!-- so long!!!! -->
                             <button class="song" title={song.title} 
                                 class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
-                                on:click={() => playSongAndQueue(song)}
+                                on:click={() => playSongAndQueue(song, index)}
                                 on:contextmenu={(e) => showSongMenu(e, song)}>
                                 <span class="track-number">{song.track_number}</span>
                                 <p class="song-title no-wrap">{song.title}</p>
@@ -86,7 +142,7 @@
         <Item on:click={playSelectedSongNext}>Play Next</Item>
         <Item on:click={addSelectedToQueue}>Add to Queue</Item>
         <Divider />
-        <Item>Edit</Item>
+        <Item on:click={showEditDialog}>Edit</Item>
         <Item on:click={removeSelectedSong}>Remove</Item>
         <Divider />
         <Item>Open File Location</Item>
