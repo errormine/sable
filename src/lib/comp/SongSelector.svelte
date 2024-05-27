@@ -184,12 +184,12 @@
         transition: all 200ms;
         width: 100%;
     
-        &.active {
-            background: var(--clr-gray-0);
-        }
-        
         &:hover {
             background: var(--clr-gray-5);
+        }
+
+        &.active {
+            background: var(--clr-gray-0);
         }
     
         & .track-number {
