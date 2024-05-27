@@ -9,12 +9,12 @@ pub fn get_source(file_path: &str) -> rodio::Decoder<BufReader<File>> {
     return rodio::Decoder::new(file).unwrap();
 }
 
-pub fn get_duration(file_path: &str) -> u32 {
+pub fn get_duration(file_path: &str) -> u64 {
     let source = get_source(file_path);
     let duration = source.total_duration();
 
     return match duration {
-        Some(d) => d.as_millis() as u32,
+        Some(d) => d.as_secs(),
         None => 0,
     };
 }
@@ -48,13 +48,14 @@ pub fn stop(state: tauri::State<MusicPlayer>) {
 }
 
 #[tauri::command]
-pub fn seek(position: String, state: tauri::State<MusicPlayer>) {
+pub fn seek(position: String, state: tauri::State<MusicPlayer>) -> String {
     let position: u64 = position.parse().unwrap();
     let duration = std::time::Duration::from_secs(position);
+    
     match state.sink.try_seek(duration) {
-        Ok(_) => (),
-        Err(_) => (),
-    };
+        Ok(_) => String::from("success"),
+        Err(e) => format!("Could not seek to: {}\n {}", position, e.to_string())
+    }
 }
 
 #[tauri::command]
