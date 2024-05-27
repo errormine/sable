@@ -3,8 +3,9 @@
 
 mod audio;
 
-use std::{error::Error, fs::{self, File, OpenOptions}, path::Path, sync::mpsc, thread};
+use std::{error::Error, fs::{self, File, OpenOptions}, io::BufReader, path::Path, sync::{mpsc, Mutex}, thread::{self, scope}, time::Instant};
 use jwalk::WalkDir;
+use rodio::Source;
 use rusqlite::{params, Connection, Result};
 use serde_json::json;
 use tauri::Manager;
@@ -68,17 +69,17 @@ fn register_file(file_path: &Path, app: tauri::AppHandle) {
     let db = Connection::open("D:/Documents/music.db").unwrap();
     let dir = file_path.parent().unwrap();
     let cover_path = dir.join("Cover.jpg");
-    let song = file_path.to_str().unwrap();
-    let tag = Tag::read_from_path(song);
+    let tag = Tag::read_from_path(file_path);
 
     match tag {
         Ok(tag) => {
+            let song = &file_path.to_string_lossy().to_string();
             let title = tag.title();
             let artist = tag.artist();
             let album = tag.album();
             let track_number = tag.track();
             let disc_number = tag.disc();
-            let duration = audio::player::get_duration(song.to_string());
+            let duration = audio::player::get_duration(song);
     
             db.execute(
                 "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
@@ -96,30 +97,118 @@ fn register_file(file_path: &Path, app: tauri::AppHandle) {
     app.emit_all("song_registered", Payload { message: "done".to_string() }).unwrap();
 }
 
+struct SongMetadata {
+    file_path: String,
+    cover_path: String,
+    title: String,
+    artist: String,
+    album: String,
+    track_number: u32,
+    disc_number: u32,
+    duration: u64
+}
+
+impl Clone for SongMetadata {
+    fn clone(&self) -> Self {
+        SongMetadata {
+            file_path: self.file_path.clone(),
+            cover_path: self.cover_path.clone(),
+            title: self.title.clone(),
+            artist: self.artist.clone(),
+            album: self.album.clone(),
+            track_number: self.track_number,
+            disc_number: self.disc_number,
+            duration: self.duration
+        }
+    }
+}
+
+fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata> {
+    let songs_metadata = Mutex::new(Vec::new());
+    let songs = songs.clone();
+
+    let read_metadata = || {
+        let mut progress = 0;
+
+        for song in songs {
+            let cover_path = song.clone().parent().unwrap().join("Cover.jpg").to_string_lossy().to_string();
+            let tag = Tag::read_from_path(&song);
+            
+            match tag {
+                Ok(tag) => {
+                    let title = tag.title().unwrap().to_string();
+                    let artist = tag.artist().unwrap().to_string();
+                    let album = tag.album().unwrap().to_string();
+                    let track_number = tag.track().unwrap_or(0);
+                    let disc_number = tag.disc().unwrap_or(0);
+                    let mut guard = songs_metadata.lock().unwrap();
+                    let duration = audio::player::get_duration(&song.to_string_lossy().to_string());
+
+                    let song_metadata = SongMetadata {
+                        file_path: song.to_string_lossy().to_string(),
+                        cover_path,
+                        title,
+                        artist,
+                        album,
+                        track_number,
+                        disc_number,
+                        duration
+                    };
+
+                    guard.push(song_metadata);
+                    progress += 1;
+                    app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
+                },
+                Err(_) => continue
+            }
+        }
+    };
+
+    scope(|s| {
+        s.spawn(read_metadata);
+    });
+
+    return songs_metadata.into_inner().unwrap();
+}
+
 #[tauri::command]
 fn register_dir(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
+    let now = Instant::now();
     
     thread::spawn(move || {
         let songs = get_song_files(&dir);
-        let mut progress = 0;
         app.emit_all("total_songs", Payload { message: songs.len().to_string() }).unwrap();
+        let songs_metadata = get_metadata(&songs, app.clone());
 
-        for song in songs {
-            register_file(&song, app.clone());
+        let mut db = Connection::open("D:/Documents/music.db").unwrap();
+        let tx = db.transaction().unwrap();
 
-            progress += 1;
-            app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
+        for song in songs_metadata {
+            tx.execute(
+                "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
+                params![&song.album, &song.artist, &song.cover_path]
+            ).unwrap();
+
+            tx.execute(
+                "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![&song.file_path, &song.title, &song.artist, &song.album, &song.track_number, &song.disc_number, &song.duration]
+            ).unwrap();
         };
+
+        tx.commit().unwrap();
 
         println!("Done registering songs");
         app.emit_all("songs_registered", Payload { message: "done".to_string() }).unwrap();
+        println!("Elapsed time: {:?}", now.elapsed());
     });
 }
 
 #[tauri::command]
 fn get_albums() -> String {
     let db = Connection::open("D:/Documents/music.db");
+    println!("{}", "Fetching albums...");
+    let now = Instant::now();
 
     match db {
         Ok(db) => {
@@ -141,6 +230,7 @@ fn get_albums() -> String {
                 albums_json.push(album);
             }
 
+            println!("Elapsed time: {:?}", now.elapsed());
             return json!(albums_json).to_string();
         },
         Err(_) => return String::from("[]")
@@ -160,9 +250,9 @@ fn get_songs_by_album(title: String, artist: String) -> String {
         let title: String = row.get(1).unwrap();
         let artist: String = row.get(2).unwrap();
         let album: String = row.get(3).unwrap();
-        let track_number: i32 = row.get(4).unwrap_or(0);
-        let disc_number: i32 = row.get(5).unwrap_or(0);
-        let duration: i64 = row.get(6).unwrap();
+        let track_number: u32 = row.get(4).unwrap_or(0);
+        let disc_number: u32 = row.get(5).unwrap_or(0);
+        let duration: u32 = row.get(6).unwrap_or(0);
 
         let song = json!({
             "file_path": file_path,
@@ -216,7 +306,7 @@ fn remove_song(file_path: String) {
 #[tauri::command]
 fn update_song_info(file_path: String, title: String, artist: String, album: String) -> String {
     let result = update_metadata(&file_path, title, artist, album);
-
+    
     match result {
         Ok(_) => {
             remove_song(file_path);

@@ -10,8 +10,8 @@ fn get_source(file_path: String) -> rodio::Decoder<BufReader<File>> {
     return source;
 }
 
-pub fn get_duration(file_path: String) -> u64 {
-    let source = get_source(file_path);
+pub fn get_duration(file_path: &str) -> u64 {
+    let source = get_source(file_path.to_string());
     let duration = source.total_duration();
 
     return match duration {
