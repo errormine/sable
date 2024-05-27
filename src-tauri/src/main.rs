@@ -3,9 +3,8 @@
 
 mod audio;
 
-use std::{error::Error, fs::{self, File, OpenOptions}, io::BufReader, path::Path, sync::{mpsc, Mutex}, thread::{self, scope}, time::Instant};
+use std::{error::Error, fs, path::Path, sync::Mutex, thread::{self, scope}, time::Instant};
 use jwalk::WalkDir;
-use rodio::Source;
 use rusqlite::{params, Connection, Result};
 use serde_json::json;
 use tauri::Manager;
@@ -73,13 +72,13 @@ fn register_file(file_path: &Path, app: tauri::AppHandle) {
 
     match tag {
         Ok(tag) => {
-            let song = &file_path.to_string_lossy().to_string();
+            let song = file_path.to_str().unwrap();
             let title = tag.title();
             let artist = tag.artist();
             let album = tag.album();
             let track_number = tag.track();
             let disc_number = tag.disc();
-            let duration = audio::player::get_duration(song);
+            let duration = audio::player::get_duration(&song);
     
             db.execute(
                 "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
@@ -105,7 +104,7 @@ struct SongMetadata {
     album: String,
     track_number: u32,
     disc_number: u32,
-    duration: u64
+    duration: u32
 }
 
 impl Clone for SongMetadata {
@@ -131,21 +130,30 @@ fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata
         let mut progress = 0;
 
         for song in songs {
-            let cover_path = song.clone().parent().unwrap().join("Cover.jpg").to_string_lossy().to_string();
+            let cover_path = song.clone().parent().unwrap().join("Cover.jpg").into_os_string().into_string().unwrap();
+            let file_path = song.clone().into_os_string().into_string().unwrap();
             let tag = Tag::read_from_path(&song);
             
             match tag {
-                Ok(tag) => {
+                Ok(mut tag) => {
                     let title = tag.title().unwrap().to_string();
                     let artist = tag.artist().unwrap().to_string();
                     let album = tag.album().unwrap().to_string();
                     let track_number = tag.track().unwrap_or(0);
                     let disc_number = tag.disc().unwrap_or(0);
-                    let mut guard = songs_metadata.lock().unwrap();
-                    let duration = audio::player::get_duration(&song.to_string_lossy().to_string());
+                    let duration = match tag.duration() {
+                        Some(d) => d,
+                        None => 0,
+                    };
 
+                    if duration == 0 {
+                        let duration = audio::player::get_duration(&file_path);
+                        tag.set_duration(duration);
+                        tag.write_to_path(&file_path, tag.version()).unwrap();
+                    }
+                    
                     let song_metadata = SongMetadata {
-                        file_path: song.to_string_lossy().to_string(),
+                        file_path,
                         cover_path,
                         title,
                         artist,
@@ -154,7 +162,8 @@ fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata
                         disc_number,
                         duration
                     };
-
+                    
+                    let mut guard = songs_metadata.lock().unwrap();
                     guard.push(song_metadata);
                     progress += 1;
                     app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
@@ -192,7 +201,7 @@ fn register_dir(dir: &Path, app: tauri::AppHandle) {
 
             tx.execute(
                 "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![&song.file_path, &song.title, &song.artist, &song.album, &song.track_number, &song.disc_number, &song.duration]
+                params![&song.file_path, &song.title, &song.artist, &song.album, &song.track_number, &song.disc_number, &song.duration / 1000]
             ).unwrap();
         };
 

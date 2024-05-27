@@ -4,32 +4,31 @@ use rodio::Source;
 
 use crate::MusicPlayer;
 
-fn get_source(file_path: String) -> rodio::Decoder<BufReader<File>> {
+pub fn get_source(file_path: &str) -> rodio::Decoder<BufReader<File>> {
     let file = BufReader::new(File::open(file_path).unwrap());
-    let source = rodio::Decoder::new(file).unwrap();
-    return source;
+    return rodio::Decoder::new(file).unwrap();
 }
 
-pub fn get_duration(file_path: &str) -> u64 {
-    let source = get_source(file_path.to_string());
+pub fn get_duration(file_path: &str) -> u32 {
+    let source = get_source(file_path);
     let duration = source.total_duration();
 
     return match duration {
-        Some(duration) => duration.as_secs(),
+        Some(d) => d.as_millis() as u32,
         None => 0,
     };
 }
 
 #[tauri::command]
 pub fn play(file_path: String, state: tauri::State<MusicPlayer>) {
-    let source = get_source(file_path);
+    let source = get_source(file_path.as_str());
     state.sink.stop();
     state.sink.append(source);
 }
 
 #[tauri::command]
 pub fn add_to_queue(file_path: String, state: tauri::State<MusicPlayer>) {
-    let source = get_source(file_path);
+    let source = get_source(file_path.as_str());
     state.sink.append(source);
 }
 
