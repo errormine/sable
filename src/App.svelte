@@ -27,7 +27,7 @@
 
         if (result) {
             loadingSongs = true;
-            invoke('register_songs', { dir: result.toString() });
+            invoke('register_dir', { dir: result.toString() });
             await listen('total_songs', (event) => {
                 totalSongs = event.payload.message;
             });

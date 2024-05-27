@@ -21,11 +21,7 @@
       },
       "fs": {
         "all": true,
-        "createDir": true,
-        "readDir": true,
-        "readFile": true,
-        "writeFile": true,
-        "scope": ["$APPCONFIG", "$APPCONFIG/*"]
+        "scope": ["**", "**/*", "/**/*"]
       },
       "path": {
         "all": true

@@ -3,7 +3,7 @@
 
 mod audio;
 
-use std::{error::Error, fs::{self, File}, path::Path, sync::mpsc, thread};
+use std::{error::Error, fs::{self, File, OpenOptions}, path::Path, sync::mpsc, thread};
 use jwalk::WalkDir;
 use rusqlite::{params, Connection, Result};
 use serde_json::json;
@@ -51,7 +51,8 @@ fn init_audio_player() {
             audio::player::skip_forward,
             audio::player::skip_backward,
             audio::player::set_volume,
-            register_songs,
+            register_file,
+            register_dir,
             get_albums,
             get_songs_by_album,
             remove_album,
@@ -63,7 +64,40 @@ fn init_audio_player() {
 }
 
 #[tauri::command]
-fn register_songs(dir: &Path, app: tauri::AppHandle) {
+fn register_file(file_path: &Path, app: tauri::AppHandle) {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    let dir = file_path.parent().unwrap();
+    let cover_path = dir.join("Cover.jpg");
+    let song = file_path.to_str().unwrap();
+    let tag = Tag::read_from_path(song);
+
+    match tag {
+        Ok(tag) => {
+            let title = tag.title();
+            let artist = tag.artist();
+            let album = tag.album();
+            let track_number = tag.track();
+            let disc_number = tag.disc();
+            let duration = audio::player::get_duration(song.to_string());
+    
+            db.execute(
+                "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
+                params![album, artist, cover_path.to_str()]
+            ).unwrap();
+    
+            db.execute(
+                "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![song, title, artist, album, track_number, disc_number, duration]
+            ).unwrap();
+        },
+        Err(_) => return
+    }
+
+    app.emit_all("song_registered", Payload { message: "done".to_string() }).unwrap();
+}
+
+#[tauri::command]
+fn register_dir(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
     
     thread::spawn(move || {
@@ -72,33 +106,7 @@ fn register_songs(dir: &Path, app: tauri::AppHandle) {
         app.emit_all("total_songs", Payload { message: songs.len().to_string() }).unwrap();
 
         for song in songs {
-            let db = Connection::open("D:/Documents/music.db").unwrap();
-            let dir = song.parent().unwrap();
-            let cover_path = dir.join("Cover.jpg");
-            let song = song.to_str().unwrap();
-            let tag = Tag::read_from_path(song);
-
-            match tag {
-                Ok(tag) => {
-                    let title = tag.title();
-                    let artist = tag.artist();
-                    let album = tag.album();
-                    let track_number = tag.track();
-                    let disc_number = tag.disc();
-                    let duration = audio::player::get_duration(song.to_string());
-            
-                    db.execute(
-                        "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
-                        params![album, artist, cover_path.to_str()]
-                    ).unwrap();
-            
-                    db.execute(
-                        "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                        params![song, title, artist, album, track_number, disc_number, duration]
-                    ).unwrap();
-                },
-                Err(_) => continue
-            }
+            register_file(&song, app.clone());
 
             progress += 1;
             app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
@@ -140,11 +148,11 @@ fn get_albums() -> String {
 }
 
 #[tauri::command]
-fn get_songs_by_album(album: String, artist: String) -> String {
+fn get_songs_by_album(title: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    let cover_path: String = db.query_row("SELECT cover_path FROM album WHERE title = ?1 AND artist = ?2", params![album, artist], |row| row.get(0)).unwrap();
+    let cover_path: String = db.query_row("SELECT cover_path FROM album WHERE title = ?1 AND artist = ?2", params![title, artist], |row| row.get(0)).unwrap();
     let mut stmt = db.prepare("SELECT * FROM song WHERE album = ?1 AND artist = ?2 ORDER BY disc_number, track_number").unwrap();
-    let mut rows = stmt.query(params![album, artist]).unwrap();
+    let mut rows = stmt.query(params![title, artist]).unwrap();
     
     let mut songs_json = Vec::new();
     while let Some(row) = rows.next().unwrap() {
@@ -215,23 +223,21 @@ fn update_song_info(file_path: String, title: String, artist: String, album: Str
             return String::from("success");
         },
         Err(e) => {
-            println!("Error updating metadata: {}", e);
-            return String::from("error");
+            println!("{}", e);
+            return format!("Error updating metadata: {}", e);
         }
     };
 }
 
 fn update_metadata(file_path: &str, title: String, artist: String, album: String) -> Result<(), Box<dyn Error>> {
     let mut tag = Tag::read_from_path(&file_path)?;
-    let file = File::open(file_path)?;
 
     tag.set_title(title);
     tag.set_artist(artist);
     tag.set_album(album);
     // tag.set_track(track_number);
     // tag.set_disc(disc_number);
-    tag.write_to_file(file, tag.version())?;
-    // called `Result::unwrap()` on an `Err` value: Io(Os { code: 5, kind: PermissionDenied, message: "Access is denied." })
+    tag.write_to_path(file_path, tag.version()).unwrap();
 
     Ok(())
 }

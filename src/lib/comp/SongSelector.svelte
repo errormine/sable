@@ -7,11 +7,9 @@
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
     import { addToast } from '../stores/notifications';
+    import { activeAlbum, refreshSongList, songList } from '../stores/songLibrary';
 
     export let domNode = null;
-
-    const activeAlbum = getContext('activeAlbum');
-    const songList = getContext('songList');
 
     let owner = null;
     
@@ -70,7 +68,6 @@
     }
 
     async function updateSong() {
-        let songDir = selectedSong.file_path.split('/').slice(0, -1).join('/');
         let formData = new FormData(songEditDialog.querySelector('form'));
 
         await invoke('update_song_info', {
@@ -80,10 +77,11 @@
             album: formData.get('album'),
         }).then(async (result) => {
             if (result != "success") {
-                addToast({ message: "Failed to update song info", type: "error", timeout: 3000 });
+                addToast({ message: result, type: "error", timeout: 10000 });
                 return;
             }
-            await invoke('register_songs', { dir: songDir});
+            await invoke('register_file', { filePath: selectedSong.file_path });
+            refreshSongList();
         });
 
         songEditDialog.close();

@@ -15,28 +15,23 @@
     import { getContext, onMount, setContext } from 'svelte';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import IonIosClose from 'virtual:icons/ion/ios-close';
-    import { setQueue, addToQueue, attemptPlayNext, isPlaying, currentSong } from '../stores/audioPlayer';
+    import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
+    import { activeAlbum, loadSongs, refreshSongList, songList } from '../stores/songLibrary';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
-    import { set } from 'tauri-settings';
-
-    let albumEditDialog;
 
     const albumViewer = writable(null);
     setContext('albumViewer', albumViewer);
-    let songSelector;
 
-    const activeAlbum = writable(null);
-    setContext('activeAlbum', activeAlbum);
-    const songList = writable(null);
-    setContext('songList', songList);
+    let albumEditDialog;
+    let songSelector;
 
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
         if ($activeAlbum != album) {
-            $songList = await loadSongs(album.title, album.artist);
             $activeAlbum = album;
+            refreshSongList();
             
             // Show song selector
             let albumListItem = target.parentNode;
@@ -51,7 +46,7 @@
     }
 
     async function playAlbum(album) {
-        setQueue(await loadSongs(album.title, album.artist));
+        setQueue(await loadSongs(album));
         attemptPlayNext();
     }
 
@@ -69,21 +64,14 @@
     }
 
     async function playSelectedAlbumNext() {
-        setQueue(await loadSongs(selectedAlbum.title, selectedAlbum.artist));
+        setQueue(await loadSongs(selectedAlbum));
         if ($currentSong.title == '') {
             attemptPlayNext();
         }
     }
 
     async function addSelectedToQueue() {
-        addToQueue(await loadSongs(selectedAlbum.title, selectedAlbum.artist));
-    }
-
-    async function loadSongs(album, artist) {
-        return await invoke('get_songs_by_album', { album: album, artist: artist })
-            .then(songsJSON => {
-                return JSON.parse(songsJSON);
-            });
+        addToQueue(await loadSongs(selectedAlbum));
     }
 </script>
 
