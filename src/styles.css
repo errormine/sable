@@ -74,6 +74,23 @@
     --clr-gray-6: #868e96;
     --clr-gray-7: #495057;
     --clr-gray-9: #212529;
+
+    --clr-red-7: #f03e3e;
+    --clr-red-8: #e03131;
+    --clr-red-9: #c92a2a;
+
+    --clr-blue-7: #1c7ed6;
+
+    --clr-cyan-7: #1098ad;
+
+    --clr-lime-7: #74b816;
+
+    --clr-error: var(--clr-red-8);
+    --clr-error-dark: color-mix(in oklab, var(--clr-error) 75%, black);
+    --clr-success: var(--clr-lime-7);
+    --clr-success-dark: color-mix(in oklab, var(--clr-success) 75%, black);
+    --clr-info: var(--clr-blue-7);
+    --clr-info-dark: color-mix(in oklab, var(--clr-info) 75%, black);
 }
 
 html, body {
@@ -131,6 +148,20 @@ input, button {
 
 button.center {
     text-align: center;
+}
+
+dialog {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    z-index: 999;
+    background: var(--clr-gray-1);
+    border: 1px solid var(--clr-gray-5);
+    border-radius: 0.5rem;
+
+    &::backdrop {
+        background: rgba(0, 0, 0, 0.5);
+    }
 }
 
 /* Utility classes */

@@ -8,6 +8,7 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
+    import Toasts from './lib/comp/Toasts.svelte';
     import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
     import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
@@ -15,6 +16,7 @@
     import { onMount } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
+    import Toast from './lib/comp/Toast.svelte';
 
     let loadingSongs = false;
     let totalSongs = 0;
@@ -45,6 +47,8 @@
         stopPlayback();
     })
 </script>
+
+<Toasts />
 
 <header id="menu-bar">
     {#if loadingSongs}
