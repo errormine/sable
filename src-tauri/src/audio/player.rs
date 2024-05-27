@@ -54,7 +54,7 @@ pub fn seek(position: String, state: tauri::State<MusicPlayer>) -> String {
     
     match state.sink.try_seek(duration) {
         Ok(_) => String::from("success"),
-        Err(e) => format!("Could not seek to: {}\n {}", position, e.to_string())
+        Err(e) => format!("{}", e.to_string())
     }
 }
 
