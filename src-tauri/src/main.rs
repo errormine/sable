@@ -123,61 +123,52 @@ impl Clone for SongMetadata {
 }
 
 fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata> {
-    let songs_metadata = Mutex::new(Vec::new());
-    let songs = songs.clone();
+    let mut songs_metadata = Vec::new();
+    let mut progress = 0;
 
-    let read_metadata = || {
-        let mut progress = 0;
+    for song in songs {
+        let cover_path = song.clone().parent().unwrap().join("Cover.jpg").into_os_string().into_string().unwrap();
+        let file_path = song.clone().into_os_string().into_string().unwrap();
+        let tag = Tag::read_from_path(&song);
+        
+        match tag {
+            Ok(mut tag) => {
+                let title = tag.title().unwrap().to_string();
+                let artist = tag.artist().unwrap().to_string();
+                let album = tag.album().unwrap().to_string();
+                let track_number = tag.track().unwrap_or(0);
+                let disc_number = tag.disc().unwrap_or(0);
+                let duration = match tag.duration() {
+                    Some(d) => d,
+                    None => 0,
+                };
 
-        for song in songs {
-            let cover_path = song.clone().parent().unwrap().join("Cover.jpg").into_os_string().into_string().unwrap();
-            let file_path = song.clone().into_os_string().into_string().unwrap();
-            let tag = Tag::read_from_path(&song);
-            
-            match tag {
-                Ok(mut tag) => {
-                    let title = tag.title().unwrap().to_string();
-                    let artist = tag.artist().unwrap().to_string();
-                    let album = tag.album().unwrap().to_string();
-                    let track_number = tag.track().unwrap_or(0);
-                    let disc_number = tag.disc().unwrap_or(0);
-                    let duration = match tag.duration() {
-                        Some(d) => d,
-                        None => 0,
-                    };
-
-                    if duration == 0 {
-                        let duration = audio::player::get_duration(&file_path);
-                        tag.set_duration(duration);
-                        tag.write_to_path(&file_path, tag.version()).unwrap();
-                    }
-                    
-                    let song_metadata = SongMetadata {
-                        file_path,
-                        cover_path,
-                        title,
-                        artist,
-                        album,
-                        track_number,
-                        disc_number,
-                        duration
-                    };
-                    
-                    let mut guard = songs_metadata.lock().unwrap();
-                    guard.push(song_metadata);
-                    progress += 1;
-                    app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
-                },
-                Err(_) => continue
-            }
+                if duration == 0 {
+                    let duration = audio::player::get_duration(&file_path);
+                    tag.set_duration(duration);
+                    tag.write_to_path(&file_path, tag.version()).unwrap();
+                }
+                
+                let song_metadata = SongMetadata {
+                    file_path,
+                    cover_path,
+                    title,
+                    artist,
+                    album,
+                    track_number,
+                    disc_number,
+                    duration
+                };
+                
+                songs_metadata.push(song_metadata);
+                progress += 1;
+                app.emit_all("songs_registered", Payload { message: progress.to_string() }).unwrap();
+            },
+            Err(_) => continue
         }
-    };
+    }
 
-    scope(|s| {
-        s.spawn(read_metadata);
-    });
-
-    return songs_metadata.into_inner().unwrap();
+    return songs_metadata;
 }
 
 #[tauri::command]
