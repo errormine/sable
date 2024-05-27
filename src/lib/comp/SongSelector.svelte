@@ -2,11 +2,11 @@
 <script>
     import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import { addToast } from '../stores/notifications';
     import IonIosClose from 'virtual:icons/ion/ios-close';
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
-    import { addToast } from '../stores/notifications';
     import { activeAlbum, refreshSongList, songList } from '../stores/songLibrary';
 
     export let domNode = null;

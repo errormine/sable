@@ -2,6 +2,7 @@
     import { sec2time } from '../utils';
     import { onMount } from 'svelte';
     import { settings, settingsManager } from '../stores/userConfig';
+    import { addToast } from '../stores/notifications';
     import IonIosPlay from 'virtual:icons/ion/ios-play';
     import IonIosPause from 'virtual:icons/ion/ios-pause';
     import IonIosSkipBackward from 'virtual:icons/ion/ios-skipbackward';
@@ -40,8 +41,19 @@
             let newTime = event.target.value;
             if (!newTime) return;
             console.log(`Seeking to : ${newTime}`);
-            await invoke('seek', { position: newTime });
-            songProgress.set(Number(newTime));
+            await invoke('seek', { position: newTime })
+                .then(result => {
+                    if (result == "success") {
+                        songProgress.set(Number(newTime));
+                    } else {
+                        addToast({
+                            message: result,
+                            type: 'error',
+                            dismissable: true,
+                            timeout: 5000,
+                        });
+                    }
+                });
             userSeeking = false;
         });
 

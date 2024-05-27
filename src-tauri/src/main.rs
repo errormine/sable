@@ -4,12 +4,12 @@
 mod audio;
 
 use std::{error::Error, fs, path::Path, sync::Mutex, thread::{self, scope}, time::Instant};
+use audiotags::Tag;
 use jwalk::WalkDir;
 use rusqlite::{params, Connection, Result};
 use serde_json::json;
 use tauri::Manager;
 use std::path::PathBuf;
-use id3::{Tag, TagLike};
 
 // https://tauri.app/v1/guides/features/events/
 #[derive(Clone, serde::Serialize)]
@@ -65,35 +65,35 @@ fn init_audio_player() {
 
 #[tauri::command]
 fn register_file(file_path: &Path, app: tauri::AppHandle) {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    let dir = file_path.parent().unwrap();
-    let cover_path = dir.join("Cover.jpg");
-    let tag = Tag::read_from_path(file_path);
+    // let db = Connection::open("D:/Documents/music.db").unwrap();
+    // let dir = file_path.parent().unwrap();
+    // let cover_path = dir.join("Cover.jpg");
+    // let tag = Tag::new().read_from_path(file_path).unwrap();
 
-    match tag {
-        Ok(tag) => {
-            let song = file_path.to_str().unwrap();
-            let title = tag.title();
-            let artist = tag.artist();
-            let album = tag.album();
-            let track_number = tag.track();
-            let disc_number = tag.disc();
-            let duration = audio::player::get_duration(&song);
+    // match tag {
+    //     Ok(tag) => {
+    //         let song = file_path.to_str().unwrap();
+    //         let title = tag.title();
+    //         let artist = tag.artist();
+    //         let album = tag.album();
+    //         let track_number = tag.track();
+    //         let disc_number = tag.disc();
+    //         let duration = audio::player::get_duration(&song);
     
-            db.execute(
-                "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
-                params![album, artist, cover_path.to_str()]
-            ).unwrap();
+    //         db.execute(
+    //             "INSERT OR IGNORE INTO album (title, artist, cover_path) VALUES (?1, ?2, ?3)",
+    //             params![album, artist, cover_path.to_str()]
+    //         ).unwrap();
     
-            db.execute(
-                "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![song, title, artist, album, track_number, disc_number, duration]
-            ).unwrap();
-        },
-        Err(_) => return
-    }
+    //         db.execute(
+    //             "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+    //             params![song, title, artist, album, track_number, disc_number, duration]
+    //         ).unwrap();
+    //     },
+    //     Err(_) => return
+    // }
 
-    app.emit_all("song_registered", Payload { message: "done".to_string() }).unwrap();
+    // app.emit_all("song_registered", Payload { message: "done".to_string() }).unwrap();
 }
 
 struct SongMetadata {
@@ -102,9 +102,9 @@ struct SongMetadata {
     title: String,
     artist: String,
     album: String,
-    track_number: u32,
-    disc_number: u32,
-    duration: u32
+    track_number: u16,
+    disc_number: u16,
+    duration: u64
 }
 
 impl Clone for SongMetadata {
@@ -122,6 +122,13 @@ impl Clone for SongMetadata {
     }
 }
 
+fn get_tag_string(option: Option<&str>) -> String {
+    match option {
+        Some(value) => value.to_string(),
+        None => String::from("Unknown"),
+    }
+}
+
 fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata> {
     let mut songs_metadata = Vec::new();
     let mut progress = 0;
@@ -129,26 +136,20 @@ fn get_metadata(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Vec<SongMetadata
     for song in songs {
         let cover_path = song.clone().parent().unwrap().join("Cover.jpg").into_os_string().into_string().unwrap();
         let file_path = song.clone().into_os_string().into_string().unwrap();
-        let tag = Tag::read_from_path(&song);
-        
+        let tag = Tag::new().read_from_path(&song);
+
         match tag {
-            Ok(mut tag) => {
-                let title = tag.title().unwrap().to_string();
-                let artist = tag.artist().unwrap().to_string();
-                let album = tag.album().unwrap().to_string();
-                let track_number = tag.track().unwrap_or(0);
-                let disc_number = tag.disc().unwrap_or(0);
+            Ok(tag) => {
+                let title = get_tag_string(tag.title());
+                let artist = get_tag_string(tag.artist());
+                let album = get_tag_string(tag.album_title());
+                let track_number = tag.track_number().unwrap_or(0);
+                let disc_number = tag.disc_number().unwrap_or(0);
                 let duration = match tag.duration() {
-                    Some(d) => d,
-                    None => 0,
+                    Some(d) => d as u64,
+                    None => audio::player::get_duration(&file_path)
                 };
 
-                if duration == 0 {
-                    let duration = audio::player::get_duration(&file_path);
-                    tag.set_duration(duration);
-                    tag.write_to_path(&file_path, tag.version()).unwrap();
-                }
-                
                 let song_metadata = SongMetadata {
                     file_path,
                     cover_path,
@@ -179,6 +180,7 @@ fn register_dir(dir: &Path, app: tauri::AppHandle) {
     thread::spawn(move || {
         let songs = get_song_files(&dir);
         app.emit_all("total_songs", Payload { message: songs.len().to_string() }).unwrap();
+        get_metadata(&songs, app.clone());
         let songs_metadata = get_metadata(&songs, app.clone());
 
         let mut db = Connection::open("D:/Documents/music.db").unwrap();
@@ -192,7 +194,7 @@ fn register_dir(dir: &Path, app: tauri::AppHandle) {
 
             tx.execute(
                 "INSERT OR IGNORE INTO song (file_path, title, artist, album, track_number, disc_number, duration) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![&song.file_path, &song.title, &song.artist, &song.album, &song.track_number, &song.disc_number, &song.duration / 1000]
+                params![&song.file_path, &song.title, &song.artist, &song.album, &song.track_number, &song.disc_number, &song.duration]
             ).unwrap();
         };
 
@@ -282,6 +284,7 @@ fn get_song_files(dir: &Path) -> Vec<PathBuf> {
             
             match extension.to_str().unwrap() {
                 "mp3" => songs.push(path.to_path_buf()),
+                "flac" => songs.push(path.to_path_buf()),
                 _ => continue
             }
         }
@@ -320,14 +323,14 @@ fn update_song_info(file_path: String, title: String, artist: String, album: Str
 }
 
 fn update_metadata(file_path: &str, title: String, artist: String, album: String) -> Result<(), Box<dyn Error>> {
-    let mut tag = Tag::read_from_path(&file_path)?;
+    // let mut tag = Tag::new().read_from_path(&file_path)?;
 
-    tag.set_title(title);
-    tag.set_artist(artist);
-    tag.set_album(album);
-    // tag.set_track(track_number);
-    // tag.set_disc(disc_number);
-    tag.write_to_path(file_path, tag.version()).unwrap();
+    // tag.set_title(&title);
+    // tag.set_artist(&artist);
+    // // tag.set_album(&album);
+    // // tag.set_track(track_number);
+    // // tag.set_disc(disc_number);
+    // tag.write_to_path(file_path)?;
 
     Ok(())
 }
