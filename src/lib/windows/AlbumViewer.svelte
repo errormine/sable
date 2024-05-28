@@ -4,7 +4,7 @@
     let albums = writable([]);
 
     export async function refreshLibrary() {
-        await invoke('get_albums').then(albumsJSON => {
+        await invoke('get_all_albums').then(albumsJSON => {
             albums.set(JSON.parse(albumsJSON));
         });
     }
