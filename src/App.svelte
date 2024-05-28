@@ -16,35 +16,38 @@
     import { onMount } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
-    import Toast from './lib/comp/Toast.svelte';
+    import { addToast } from './lib/stores/notifications';
 
     let loadingSongs = false;
     let totalSongs = 0;
     let songsRegistered = 0;
 
     async function openFile() {
-        const result = await open({ directory: true, multiple: false });
+        const directory = await open({ directory: true, multiple: false });
 
-        if (result) {
+        if (directory) {
             loadingSongs = true;
-            invoke('register_dir', { dir: result.toString() });
-            await listen('total_songs', (event) => {
-                totalSongs = event.payload.message;
-            });
-            await listen('songs_registered', (event) => {
-                if (event.payload.message == "done") {
-                    loadingSongs = false;
-                    refreshLibrary();
-                    return;
-                }
-                songsRegistered = event.payload.message;
-            });
+            invoke('register_dir', { dir: directory.toString() });
         }
     }
 
-    onMount(() => {
+    onMount(async () => {
         refreshLibrary();
         stopPlayback();
+
+        await listen('total_songs', (event) => {
+            totalSongs = event.payload.message;
+        });
+
+        await listen('songs_registered', (event) => {
+            songsRegistered = event.payload.message;
+        });
+
+        await listen('register_songs_finished', (event) => {
+            loadingSongs = false;
+            refreshLibrary();
+            addToast(JSON.parse(event.payload.message));
+        });
     })
 </script>
 

@@ -1,4 +1,4 @@
-use std::{error::Error, path::{Path, PathBuf}, thread, time::Instant};
+use std::{error::Error, path::{Path, PathBuf}, sync::mpsc, thread, time::Instant};
 
 use audiotags::Tag;
 use jwalk::WalkDir;
@@ -76,7 +76,11 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let title = tag_to_string(tag.title());
     let artist = tag_to_string(tag.artist());
     let album_title = tag_to_string(tag.album_title());
-    let album_artist = tag_to_string(tag.album_artist());
+    // album_artist will be often be missing
+    let album_artist = match tag.album_artist() {
+        Some(album_artist) => String::from(album_artist),
+        None => String::from(&artist)
+    };
     let track_number = tag.track_number().unwrap_or(0);
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
@@ -101,114 +105,124 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     });
 }
 
-fn get_metadata_vec(songs: &Vec<PathBuf>, app: tauri::AppHandle) -> Result<Vec<SongMetadata>, Box<dyn Error>>{
-    let mut songs_metadata = Vec::new();
-    let mut progress = 0;
+fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
+    let mut db = Connection::open("D:/Documents/music.db")?;
+    let tx = db.transaction()?;
 
     for song in songs {
-        match Tag::new().read_from_path(&song) {
-            Ok(_tag) => {
-                let song_metadata = get_metadata(&song)?;
-                
-                songs_metadata.push(song_metadata);
-                progress += 1;
-                app.emit_all("songs_registered", crate::Payload { message: progress.to_string() }).unwrap();
-            },
-            Err(_) => continue
-        }
-    }
+        tx.execute(
+            "INSERT OR IGNORE INTO album (cover_path, title, artist, year, genre) 
+            VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![
+                &song.cover_path,
+                &song.album_title,
+                &song.album_artist,
+                &song.year,
+                &song.genre,
+            ]
+        )?;
 
-    return Ok(songs_metadata);
+        tx.execute(
+            "INSERT OR IGNORE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            params![
+                &song.file_path,
+                &song.cover_path,
+                &song.title,
+                &song.artist,
+                &song.album_title,
+                &song.album_artist,
+                &song.track_number,
+                &song.disc_number,
+                &song.duration,
+                &song.year,
+                &song.genre,
+            ]
+        )?;
+    };
+
+    tx.commit()?;
+    return Ok(());
 }
 
 #[tauri::command]
-pub fn register_dir(dir: &Path, app: tauri::AppHandle) -> String {
+pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
-    let now = Instant::now();
     
     thread::spawn(move || {
         let songs = get_song_files(&dir);
-        let songs_metadata = match get_metadata_vec(&songs, app.clone()) {
-            Ok(s) => s,
-            Err(e) => {
-                println!("{}", e);
-                return format!("Error registering songs: {}", e.to_string());
+        app.emit_all("total_songs", crate::Payload { message: songs.len().to_string() }).unwrap();
+
+        let mut songs_metadata = Vec::new();
+        let mut successful = 0;
+        let mut failed = 0;
+
+        for song in songs {
+            if let Ok(metadata) = get_metadata(&song) {
+                songs_metadata.push(metadata);
+                successful += 1;
+                app.emit_all("songs_registered", crate::Payload { message: successful.to_string() }).unwrap();
+            } else {
+                failed += 1;
+                // TODO: keep track of which files failed to read
             }
-        };
-        app.emit_all("total_songs", crate::Payload { message: songs_metadata.len().to_string() }).unwrap();
+        }
 
-        let mut db = Connection::open("D:/Documents/music.db").unwrap();
-        let tx = db.transaction().unwrap();
-
-        for song in songs_metadata {
-            tx.execute(
-                "INSERT OR IGNORE INTO album (cover_path, title, artist, year, genre) 
-                VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![
-                    &song.cover_path,
-                    &song.album_title,
-                    &song.album_artist,
-                    &song.year,
-                    &song.genre,
-                ]
-            ).unwrap();
-
-            tx.execute(
-                "INSERT OR IGNORE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
-                params![
-                    &song.file_path,
-                    &song.cover_path,
-                    &song.title,
-                    &song.artist,
-                    &song.album_title,
-                    &song.album_artist,
-                    &song.track_number,
-                    &song.disc_number,
-                    &song.duration,
-                    &song.year,
-                    &song.genre,
-                ]
-            ).unwrap();
+        if let Err(e) = commit_to_db(songs_metadata) {
+            let result = json!({
+                "message": e.to_string(),
+                "type": "error",
+                "dismissable": true,
+                "timeout": 5000
+            }).to_string();
+            app.emit_all("register_songs_finished", crate::Payload { message: result }).unwrap();
         };
 
-        tx.commit().unwrap();
 
-        app.emit_all("songs_registered", crate::Payload { message: "done".to_string() }).unwrap();
-        println!("Elapsed time: {:?}", now.elapsed());
-        return String::from("Done registering songs");
+        let mut message = format!("Registered {} songs", successful);
+        if failed > 0 {
+            message += format!(", {} could not be read", failed).as_str();
+        }
+        let result = json!({
+            "message": message,
+            "type": "success",
+            "dismissable": true,
+            "timeout": 5000
+        }).to_string();
+
+        app.emit_all("register_songs_finished", crate::Payload { message: result }).unwrap();
     });
-
-    return String::from("Registering songs...");
 }
 
 #[tauri::command]
 pub fn get_all_albums() -> String {
     let db = Connection::open("D:/Documents/music.db");
-    println!("{}", "Fetching albums...");
     let now = Instant::now();
 
     match db {
         Ok(db) => {
-            let mut stmt = db.prepare("SELECT title, artist, cover_path FROM album ORDER BY artist, title").unwrap();
+            let mut stmt = db.prepare("SELECT * FROM album ORDER BY artist, title").unwrap();
             let mut rows = stmt.query(params![]).unwrap();
             
             let mut albums_json = Vec::new();
             while let Some(row) = rows.next().unwrap() {
-                let title: String = row.get(0).unwrap();
-                let artist: String = row.get(1).unwrap();
-                let cover_path: String = row.get(2).unwrap();
+                let cover_path: String = row.get(0).unwrap();
+                let title: String = row.get(1).unwrap();
+                let artist: String = row.get(2).unwrap();
+                let year: u32 = row.get(3).unwrap_or(0);
+                let genre: String = row.get(4).unwrap();
 
                 let album = json!({
+                    "cover_path": cover_path,
                     "title": title,
                     "artist": artist,
-                    "cover_path": cover_path
+                    "year": year,
+                    "genre": genre,
                 });
 
                 albums_json.push(album);
             }
 
-            println!("Elapsed time: {:?}", now.elapsed());
             return json!(albums_json).to_string();
         },
         Err(_) => return String::from("[]")
@@ -218,7 +232,6 @@ pub fn get_all_albums() -> String {
 #[tauri::command]
 pub fn get_songs_by_album(title: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    let cover_path: String = db.query_row("SELECT cover_path FROM album WHERE title = ?1 AND artist = ?2", params![title, artist], |row| row.get(0)).unwrap();
     let mut stmt = db.prepare("SELECT * FROM song WHERE album_title = ?1 AND artist = ?2 ORDER BY disc_number, track_number").unwrap();
     let mut rows = stmt.query(params![title, artist]).unwrap();
     
