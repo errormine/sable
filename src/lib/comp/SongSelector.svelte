@@ -8,6 +8,7 @@
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
     import { activeAlbum, refreshSongList, songList } from '../stores/songLibrary';
+    import AlbumCover from './AlbumCover.svelte';
 
     export let domNode = null;
 
@@ -112,7 +113,7 @@
 <section bind:this={domNode} class="album-info" class:hidden={$activeAlbum == null}>
     <section class="album-info-wrapper">
         {#if $songList && $activeAlbum != null}
-            <img class="album-cover" src={convertFileSrc($activeAlbum.cover_path)} alt="">
+            <AlbumCover path={$activeAlbum.cover_path} />
             <section class="song-selector">
                 <header class="mb-05">
                     <h2>{$activeAlbum.title}</h2>

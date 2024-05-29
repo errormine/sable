@@ -1,12 +1,14 @@
 <script>
+    import { path } from '@tauri-apps/api';
     import { convertFileSrc } from '@tauri-apps/api/tauri';
+    import AlbumCover from './AlbumCover.svelte';
 
     export let album;
 </script>
 
 <button class="album" on:click on:dblclick on:contextmenu>
     <section class="cover-wrapper">
-        <img src={convertFileSrc(album.cover_path)} alt="" width="128" height="128" loading="lazy">
+        <AlbumCover path={album.cover_path} />
     </section>
     <section class="album-info">
         <p class="title no-wrap" title={album.title}><strong>{album.title}</strong></p>
@@ -21,11 +23,6 @@
         & .cover-wrapper {
             aspect-ratio: 1 / 1;
             object-fit: scale-down;
-        }
-        
-        & img {
-            width: 100%;
-            border-radius: 0.25rem;
         }
     }
 

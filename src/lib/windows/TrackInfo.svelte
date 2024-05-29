@@ -1,7 +1,7 @@
 <script>
-    import { convertFileSrc } from "@tauri-apps/api/tauri";
     import { currentSong } from "../stores/audioPlayer";
     import Window from "../comp/Window.svelte";
+    import AlbumCover from "../comp/AlbumCover.svelte";
 </script>
 
 <Window title="Track Information">
@@ -10,7 +10,7 @@
             <p>{$currentSong.title}</p>
             <p>{$currentSong.artist}</p>
         </header>
-        <img src={convertFileSrc($currentSong.cover_path)} alt="">
+        <AlbumCover path={$currentSong.cover_path} />
     </section>
 </Window>
 

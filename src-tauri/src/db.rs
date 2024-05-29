@@ -31,7 +31,7 @@ fn get_song_files(dir: &Path) -> Vec<PathBuf> {
 #[derive(Debug)]
 struct SongMetadata {
     file_path: String,
-    cover_path: String,
+    cover_path: Option<String>,
     title: String,
     artist: String,
     album_title: String,
@@ -72,21 +72,29 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let tag = Tag::new().read_from_path(&song)?;
 
     let file_path = song.clone().into_os_string().into_string().unwrap();
-    let cover_path = song.parent().unwrap().join("Cover.jpg").into_os_string().into_string().unwrap();
+    // I feel like there's a better way to do this
+    let cover_path = song.parent().unwrap().join("Cover.jpg");
+    let cover_exists = cover_path.try_exists()?;
+    let cover_path = match cover_exists {
+        true => Some(cover_path.into_os_string().into_string().unwrap()),
+        false => None
+    };
+
     let title = tag_to_string(tag.title());
     let artist = tag_to_string(tag.artist());
     let album_title = tag_to_string(tag.album_title());
-    // album_artist will be often be missing
     let album_artist = match tag.album_artist() {
         Some(album_artist) => String::from(album_artist),
         None => String::from(&artist)
     };
+
     let track_number = tag.track_number().unwrap_or(0);
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
         Some(d) => d as u64,
         None => audio::get_duration(&file_path)
     };
+
     let year = tag.year().unwrap_or(0);
     let genre = tag_to_string(tag.genre());
 
@@ -197,7 +205,6 @@ pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
 #[tauri::command]
 pub fn get_all_albums() -> String {
     let db = Connection::open("D:/Documents/music.db");
-    let now = Instant::now();
 
     match db {
         Ok(db) => {
@@ -206,7 +213,7 @@ pub fn get_all_albums() -> String {
             
             let mut albums_json = Vec::new();
             while let Some(row) = rows.next().unwrap() {
-                let cover_path: String = row.get(0).unwrap();
+                let cover_path: String = row.get(0).unwrap_or_default();
                 let title: String = row.get(1).unwrap();
                 let artist: String = row.get(2).unwrap();
                 let year: u32 = row.get(3).unwrap_or(0);
@@ -238,7 +245,7 @@ pub fn get_songs_by_album(title: String, artist: String) -> String {
     let mut songs_json = Vec::new();
     while let Some(row) = rows.next().unwrap() {
         let file_path: String = row.get(0).unwrap();
-        let cover_path: String = row.get(1).unwrap();
+        let cover_path: String = row.get(1).unwrap_or_default();
         let title: String = row.get(2).unwrap();
         let artist: String = row.get(3).unwrap();
         let album_title: String = row.get(4).unwrap();
