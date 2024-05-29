@@ -70,14 +70,22 @@ fn tag_to_string(option: Option<&str>) -> String {
 
 fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let tag = Tag::new().read_from_path(&song)?;
-
+    
     let file_path = song.clone().into_os_string().into_string().unwrap();
-    // I feel like there's a better way to do this
-    let cover_path = song.parent().unwrap().join("Cover.jpg");
-    let cover_exists = cover_path.try_exists()?;
-    let cover_path = match cover_exists {
-        true => Some(cover_path.into_os_string().into_string().unwrap()),
-        false => None
+    let mut cover_path = None;
+    let cover_names = ["cover.jpg", "cover.png", "folder.jpg", "folder.png", "front.jpg", "front.png"];
+    for entry in WalkDir::new(song.parent().unwrap()) {
+        let path = entry.unwrap().path();
+
+        if path.is_file() {
+            let lowercase = path.file_name().unwrap().to_ascii_lowercase();
+            let name = lowercase.to_str().unwrap();
+            
+            if cover_names.contains(&name) {
+                cover_path = Some(path.into_os_string().into_string().unwrap());
+                break;
+            };
+        };
     };
 
     let title = tag_to_string(tag.title());
@@ -119,7 +127,7 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
 
     for song in songs {
         tx.execute(
-            "INSERT OR IGNORE INTO album (cover_path, title, artist, year, genre) 
+            "INSERT OR REPLACE INTO album (cover_path, title, artist, year, genre) 
             VALUES (?1, ?2, ?3, ?4, ?5)",
             params![
                 &song.cover_path,
@@ -131,7 +139,7 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
         )?;
 
         tx.execute(
-            "INSERT OR IGNORE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
+            "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             params![
                 &song.file_path,
@@ -239,7 +247,7 @@ pub fn get_all_albums() -> String {
 #[tauri::command]
 pub fn get_songs_by_album(title: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    let mut stmt = db.prepare("SELECT * FROM song WHERE album_title = ?1 AND artist = ?2 ORDER BY disc_number, track_number").unwrap();
+    let mut stmt = db.prepare("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number").unwrap();
     let mut rows = stmt.query(params![title, artist]).unwrap();
     
     let mut songs_json = Vec::new();
