@@ -47,12 +47,13 @@ fn init_audio_player() {
             audio::skip_forward,
             audio::skip_backward,
             audio::set_volume,
+            db::register_file,
             db::register_dir,
             db::get_all_albums,
             db::get_songs_by_album,
             db::remove_album,
             db::remove_song,
-            db::update_song_info
+            db::update_metadata_song,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

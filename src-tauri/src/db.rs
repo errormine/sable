@@ -20,6 +20,9 @@ fn get_song_files(dir: &Path) -> Vec<PathBuf> {
             match extension.to_str().unwrap() {
                 "mp3" => songs.push(path.to_path_buf()),
                 "flac" => songs.push(path.to_path_buf()),
+                "wav" => songs.push(path.to_path_buf()),
+                "ogg" => songs.push(path.to_path_buf()),
+                "aac" => songs.push(path.to_path_buf()),
                 _ => continue
             }
         }
@@ -162,6 +165,38 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
 }
 
 #[tauri::command]
+pub fn register_file(file_path: &Path, app: tauri::AppHandle) {
+    let file_path = file_path.to_path_buf();
+    
+    thread::spawn(move || {
+        let metadata = get_metadata(&file_path);
+
+        match metadata {
+            Ok(metadata) => {
+                let songs_metadata = vec![metadata];
+                commit_to_db(songs_metadata).unwrap();
+                let result = json!({
+                    "message": "File updated successfully",
+                    "type": "success",
+                    "dismissable": true,
+                    "timeout": 3000
+                }).to_string();
+                app.emit_all("register_file_finished", crate::Payload { message: result }).unwrap();
+            },
+            Err(e) => {
+                let result = json!({
+                    "message": e.to_string(),
+                    "type": "error",
+                    "dismissable": true,
+                    "timeout": 5000
+                }).to_string();
+                app.emit_all("register_file_finished", crate::Payload { message: result }).unwrap();
+            }
+        };
+    });
+}
+
+#[tauri::command]
 pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
     
@@ -297,31 +332,38 @@ pub fn remove_song(file_path: String) {
     db.execute("DELETE FROM song WHERE file_path = ?1", params![file_path]).unwrap();
 }
 
-fn update_metadata(file_path: &str, title: String, artist: String, album: String) -> Result<(), Box<dyn Error>> {
-    // let mut tag = Tag::new().read_from_path(&file_path)?;
-
-    // tag.set_title(&title);
-    // tag.set_artist(&artist);
-    // // tag.set_album(&album);
-    // // tag.set_track(track_number);
-    // // tag.set_disc(disc_number);
-    // tag.write_to_path(file_path)?;
-
-    Ok(())
-}
-
 #[tauri::command]
-pub fn update_song_info(file_path: String, title: String, artist: String, album: String) -> String {
-    let result = update_metadata(&file_path, title, artist, album);
-    
-    match result {
-        Ok(_) => {
-            remove_song(file_path);
-            return String::from("success");
+pub fn update_metadata_song(
+    file_path: String,
+    title: String,
+    artist: String,
+    album_title: String,
+    album_artist: String,
+    track_number: u16,
+    disc_number: u16,
+    year: i32,
+    genre: String
+) -> String {
+    let tag = Tag::new().read_from_path(&file_path);
+
+    match tag { 
+        Ok(mut tag) => {
+            tag.set_title(&title);
+            tag.set_artist(&artist);
+            tag.set_album_title(&album_title);
+            tag.set_album_artist(&album_artist);
+            tag.set_track_number(track_number);
+            tag.set_disc_number(disc_number);
+            tag.set_year(year);
+            tag.set_genre(&genre);
+        
+            tag.write_to_path(&file_path);
         },
         Err(e) => {
-            println!("{}", e);
-            return format!("Error updating metadata: {}", e);
+            return String::from(e.to_string());
         }
-    };
+    }
+    
+    remove_song(file_path);
+    return String::from("success");
 }

@@ -17,11 +17,11 @@
     button {
         display: block;
         border-radius: 0.25rem;
-        transition: opacity 200ms;
+        transition: all 200ms;
         padding: 2px;
     
         &:hover {
-            opacity: 0.8;
+            background: var(--clr-gray-4);
         }
     }
 </style>

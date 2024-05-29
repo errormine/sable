@@ -1,6 +1,7 @@
 <svelte:options accessors />
 <script>
     import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+    import { listen } from '@tauri-apps/api/event';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { addToast } from '../stores/notifications';
     import IonIosClose from 'virtual:icons/ion/ios-close';
@@ -8,7 +9,9 @@
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
     import { activeAlbum, refreshSongList, songList } from '../stores/songLibrary';
+    import PopoutWindow from './PopoutWindow.svelte';
     import AlbumCover from './AlbumCover.svelte';
+    import IconButton from './IconButton.svelte';
 
     export let domNode = null;
 
@@ -21,18 +24,24 @@
         domNode.style.width = owner.clientWidth + 'px';
     }
     
-    onMount(() => {
+    onMount(async () => {
         owner = domNode.parentNode;
         
         addEventListener('resize', () => {
             // TODO: fix errors when parent node doesn't exist
             updateSize(domNode.parentNode);
         });
+
+        await listen('register_file_finished', (event) => {
+            refreshSongList();
+            addToast(JSON.parse(event.payload.message));
+        });
     });
 
     let songEditDialog;
     let songContextMenu;
     let selectedSong;
+    let editingSong;
 
     function showSongMenu(e, song) {
         songContextMenu.show(e);
@@ -57,13 +66,7 @@
     }
 
     function showEditDialog() {
-        let title = songEditDialog.querySelector('#title');
-        let artist = songEditDialog.querySelector('#artist');
-        let album = songEditDialog.querySelector('#album');
-
-        title.value = selectedSong.title;
-        artist.value = selectedSong.artist;
-        album.value = selectedSong.album;
+        editingSong = selectedSong;
 
         songEditDialog.showModal();
     }
@@ -71,45 +74,85 @@
     async function updateSong() {
         let formData = new FormData(songEditDialog.querySelector('form'));
 
-        await invoke('update_song_info', {
+        await invoke('update_metadata_song', {
             filePath: selectedSong.file_path,
+            coverPath: formData.get('cover-path'),
             title: formData.get('title'),
             artist: formData.get('artist'),
-            album: formData.get('album'),
+            albumTitle: formData.get('album-title'),
+            albumArtist: formData.get('album-artist'),
+            trackNumber: Number(formData.get('track-number')),
+            discNumber: Number(formData.get('disc-number')),
+            year: Number(formData.get('year')),
+            genre: formData.get('genre')
         }).then(async (result) => {
             if (result != "success") {
                 addToast({ message: result, type: "error", timeout: 10000 });
                 return;
             }
             await invoke('register_file', { filePath: selectedSong.file_path });
-            refreshSongList();
         });
 
         songEditDialog.close();
     }
 </script>
 
-<dialog bind:this={songEditDialog} class="song-editor">
-    <header>
-        <p>Edit</p>
-        <button on:click={() => songEditDialog.close()}><IonIosClose/></button>
-    </header>
-    <form>
-        <label for="title">Title</label>
-        <input type="text" id="title" name="title">
+<PopoutWindow bind:dialog={songEditDialog} title={editingSong ? editingSong.title : ""}>
+    {#if editingSong}
+        <form class="item-edit-form">
+            <fieldset>
+                <label for="cover-path"><AlbumCover path={editingSong.cover_path}/></label>
+                <input hidden type="file" id="cover-path" name="cover-path">
+            </fieldset>
 
-        <label for="artist">Artist</label>
-        <input type="text" id="artist" name="artist">
-
-        <label for="album">Album</label>
-        <input type="text" id="album" name="album">
-
-        <label for="year">Year</label>
-        <input type="number" id="year" name="year">
+            <fieldset>
+                <label for="title">
+                    <span>Title</span>
+                    <input type="text" id="title" name="title" value={editingSong.title}>
+                </label>
         
-        <button type="button" on:click={updateSong}>Save</button>
-    </form>
-</dialog>
+                <label for="artist">
+                    <span>Artist</span>
+                    <input type="text" id="artist" name="artist" value={editingSong.artist}>
+                </label>
+        
+                <label for="album">
+                    <span>Album Title</span>
+                    <input type="text" id="album-title" name="album-title" value={editingSong.album_title}>
+                </label>
+        
+                <label for="album-artist">
+                    <span>Album Artist</span>
+                    <input type="text" id="album-artist" name="album-artist" value={editingSong.album_artist}>
+                </label>
+        
+                <label for="track-number">
+                    <span>Track Number</span>
+                    <input type="number" id="track-number" name="track-number" value={editingSong.track_number}>
+                </label>
+        
+                <label for="disc-number">
+                    <span>Disc Number</span>
+                    <input type="number" id="disc-number" name="disc-number" value={editingSong.disc_number}>
+                </label>
+        
+                <label for="year">
+                    <span>Year</span>
+                    <input type="number" id="year" name="year" value={editingSong.year}>
+                </label>
+        
+                <label for="genre">
+                    <span>Genre</span>
+                    <input type="text" id="genre" name="genre" value={editingSong.genre}>
+                </label>
+            </fieldset>
+            
+            <fieldset class="footer">
+                <button type="button" on:click={updateSong}>Save</button>
+            </fieldset>
+        </form>
+    {/if}
+</PopoutWindow>
 <section bind:this={domNode} class="album-info" class:hidden={$activeAlbum == null}>
     <section class="album-info-wrapper">
         {#if $songList && $activeAlbum != null}

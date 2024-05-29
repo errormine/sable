@@ -70,6 +70,7 @@
     --clr-gray-0: #f8f9fa;
     --clr-gray-1: #f1f3f5;
     --clr-gray-3: #dee2e6;
+    --clr-gray-4: #ced4da;
     --clr-gray-5: #adb5bd;
     --clr-gray-6: #868e96;
     --clr-gray-7: #495057;
@@ -145,21 +146,64 @@ input, button {
     text-align: left;
 }
 
+input[type="text"],
+input[type="number"] {
+    padding: 0.25rem;
+    border: 1px solid var(--clr-gray-5);
+    border-radius: 0.25rem;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 button.center {
     text-align: center;
 }
 
-dialog {
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    z-index: 999;
-    background: var(--clr-gray-1);
-    border: 1px solid var(--clr-gray-5);
-    border-radius: 0.5rem;
+/* Forms */
+form {
+    padding: 1rem;
+}
 
-    &::backdrop {
-        background: rgba(0, 0, 0, 0.5);
+.item-edit-form {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: 1rem;
+}
+
+fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    &.footer {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    & legend {
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    
+    & label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        vertical-align: middle;
+        gap: 1rem;
+    }
+
+    & label > span {
+        margin-right: 1rem;
+    }
+
+    & label > input {
+        float: right;
     }
 }
 
