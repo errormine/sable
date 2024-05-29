@@ -10,7 +10,7 @@
             <p>{$currentSong.title}</p>
             <p>{$currentSong.artist}</p>
         </header>
-        <AlbumCover path={$currentSong.cover_path} />
+        <AlbumCover path={$currentSong.cover_path} rounded={false}/>
     </section>
 </Window>
 

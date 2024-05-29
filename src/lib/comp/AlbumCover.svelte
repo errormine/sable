@@ -2,17 +2,18 @@
     import { convertFileSrc } from "@tauri-apps/api/tauri";
 
     export let path = "";
+    export let rounded = true;
 </script>
 
-{#if path == ""}
-    <img src="/assets/placeholder/cover.png" alt="" width="128" height="128" loading="lazy">
-{:else}
-    <img src={convertFileSrc(path)} alt="" width="128" height="128" loading="lazy">
-{/if}
+<img src={path == "" ? "/assets/placeholder/cover.png" : convertFileSrc(path)} alt="" width="128" height="128" loading="lazy" class:rounded={rounded}>
 
 <style>
     img {
+        display: block;
         width: 100%;
+    }
+
+    img.rounded {
         border-radius: 0.25rem;
     }
 </style>
