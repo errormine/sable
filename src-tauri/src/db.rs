@@ -335,6 +335,7 @@ pub fn remove_song(file_path: String) {
 #[tauri::command]
 pub fn update_metadata_song(
     file_path: String,
+    cover_path: String,
     title: String,
     artist: String,
     album_title: String,
@@ -357,11 +358,22 @@ pub fn update_metadata_song(
             tag.set_year(year);
             tag.set_genre(&genre);
         
-            tag.write_to_path(&file_path);
+            match tag.write_to_path(&file_path) {
+                Ok(_) => {},
+                Err(e) => {
+                    return String::from(e.to_string());
+                }
+            };
         },
         Err(e) => {
             return String::from(e.to_string());
         }
+    }
+
+    println!("cover_path: {}", cover_path);
+
+    if cover_path != "" {
+        // TODO: copy cover to song directory
     }
     
     remove_song(file_path);

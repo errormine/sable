@@ -2,6 +2,7 @@
 <script>
     import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event';
+    import { open } from '@tauri-apps/api/dialog';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { addToast } from '../stores/notifications';
     import IonIosClose from 'virtual:icons/ion/ios-close';
@@ -71,11 +72,23 @@
         songEditDialog.showModal();
     }
 
+    async function getNewCover() {
+        const coverPath = await open({
+            filters: [{ name: 'Images', extensions: ['jpg', 'png'] }],
+            multiple: false
+        });
+
+        if (coverPath) {
+            songEditDialog.querySelector('#cover-path').value = coverPath;
+            editingSong.cover_path = coverPath;
+        }
+    }
+
     async function updateSong() {
         let formData = new FormData(songEditDialog.querySelector('form'));
 
         await invoke('update_metadata_song', {
-            filePath: selectedSong.file_path,
+            filePath: editingSong.file_path,
             coverPath: formData.get('cover-path'),
             title: formData.get('title'),
             artist: formData.get('artist'),
@@ -90,7 +103,7 @@
                 addToast({ message: result, type: "error", timeout: 10000 });
                 return;
             }
-            await invoke('register_file', { filePath: selectedSong.file_path });
+            await invoke('register_file', { filePath: editingSong.file_path });
         });
 
         songEditDialog.close();
@@ -102,7 +115,8 @@
         <form class="item-edit-form">
             <fieldset>
                 <label for="cover-path"><AlbumCover path={editingSong.cover_path}/></label>
-                <input hidden type="file" id="cover-path" name="cover-path">
+                <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path">
+                <p><em>Setting a new cover doesn't work yet.</em></p>
             </fieldset>
 
             <fieldset>
