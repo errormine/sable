@@ -23,7 +23,7 @@
             let albumListItem = target.parentNode;
             albumListItem.appendChild(songSelector.domNode);
             songSelector.updateSize(albumListItem);
-            $albumViewer.scrollTo(0, target.offsetTop - 40);
+            albumViewer.scrollTo(0, target.offsetTop - 40);
         } else {
             // Ignore double clicks
             if (e.detail > 1) return;
@@ -62,7 +62,7 @@
 </script>
 
 <Window title="Albums">
-    <section class="album-viewer">
+    <section bind:this={albumViewer} class="album-viewer">
         {#if $albums}
             <ul>
                 {#each $albums as album}
