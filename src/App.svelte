@@ -9,7 +9,7 @@
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
-    import AlbumViewer, { refreshLibrary } from './lib/windows/AlbumViewer.svelte';
+    import AlbumViewer from './lib/windows/AlbumViewer.svelte';
     import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
@@ -17,6 +17,10 @@
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
     import { addToast } from './lib/stores/notifications';
+    import WindowTabs from './lib/comp/WindowTabs.svelte';
+    import ArtistPage from './lib/windows/ArtistPage.svelte';
+    import Artists from './lib/windows/Artists.svelte';
+    import { refreshLibrary } from './lib/stores/songLibrary';
 
     let loadingSongs = false;
     let totalSongs = 0;
@@ -62,10 +66,11 @@
     {/if}
 </header>
 <main>
-    <section id="left">
-
-    </section>
-    <AlbumViewer />
+    <Artists />
+    <WindowTabs>
+        <AlbumViewer />
+        <ArtistPage />
+    </WindowTabs>
     <WindowStack id="right">
         <SongQueue />
         <TrackInfo />
@@ -81,7 +86,7 @@
     main {
         max-height: var(--main-window-height);
         display: grid;
-        grid-template-columns: 0 1fr 20rem;
+        grid-template-columns: 14rem 1fr 20rem;
         background: var(--clr-gray-1);
 
         & > section {

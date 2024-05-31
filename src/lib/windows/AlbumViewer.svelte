@@ -1,29 +1,15 @@
-<script context="module">
-    import { writable } from 'svelte/store';
-
-    let albums = writable([]);
-
-    export async function refreshLibrary() {
-        await invoke('get_all_albums').then(albumsJSON => {
-            albums.set(JSON.parse(albumsJSON));
-        });
-    }
-</script>
-
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import { getContext, onMount, setContext } from 'svelte';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import IonIosClose from 'virtual:icons/ion/ios-close';
     import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
-    import { activeAlbum, loadSongs, refreshSongList, songList } from '../stores/songLibrary';
+    import { albums, activeAlbum, loadSongs, refreshLibrary, refreshSongList, songList } from '../stores/songLibrary';
     import Window from '../comp/Window.svelte';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
 
-    const albumViewer = writable(null);
-    setContext('albumViewer', albumViewer);
-
+    let albumViewer;
     let albumEditDialog;
     let songSelector;
 
@@ -31,7 +17,7 @@
         let target = e.currentTarget;
         if ($activeAlbum != album) {
             $activeAlbum = album;
-            refreshSongList();
+            await refreshSongList();
             
             // Show song selector
             let albumListItem = target.parentNode;
@@ -76,7 +62,7 @@
 </script>
 
 <Window title="Albums">
-    <section bind:this={$albumViewer} class="album-viewer">
+    <section class="album-viewer">
         {#if $albums}
             <ul>
                 {#each $albums as album}

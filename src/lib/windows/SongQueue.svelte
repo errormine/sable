@@ -4,6 +4,7 @@
     import { sec2time } from "../utils";
     import Window from "../comp/Window.svelte";
     import AlbumCover from "../comp/AlbumCover.svelte";
+    import CardListItem from "../comp/CardListItem.svelte";
 
     let queue;
     let queueList;
@@ -34,16 +35,16 @@
         {#if $songQueue.length > 0}
             <ol bind:this={queueList} class="queue-list">
                 {#each $songQueue as song, index}
-                <li class="song-item" class:active={index == $currentSongIndex}>
-                    <button class="song" on:click={() => jumpToSong(index)}>
+                    <!-- This is actually unreadable I'm so sorry -->
+                    <CardListItem 
+                        title={song.title} 
+                        subtitle={song.artist} 
+                        floatingText={sec2time(song.duration)} 
+                        onClick={() => jumpToSong(index)} 
+                        highlighted={index == $currentSongIndex}
+                            >
                         <AlbumCover path={song.cover_path} />
-                        <section class="no-wrap">
-                            <p class="title no-wrap" title={song.title}><strong>{song.title}</strong></p>
-                            <p class="artist no-wrap" title={song.artist}>{song.artist}</p>
-                        </section>
-                        <p class="duration no-wrap">{sec2time(song.duration)}</p>
-                    </button>
-                </li>
+                    </CardListItem>
                 {/each}
             </ol>
         {:else}
@@ -64,31 +65,5 @@
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
-
-        & .song-item {
-            color: var(--clr-gray-7);
-            border-radius: 0.25rem;
-            overflow: hidden;
-        }
-    
-        & .song-item.active {
-            color: var(--clr-gray-9);
-            background: var(--clr-gray-3);
-        }
-
-    }
-    
-    .song {
-        display: grid;
-        grid-template-columns: 3rem 1fr 5ch;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem;
-        width: 100%;
-        color: inherit;
-    
-        & .duration {
-            text-align: right;
-        }
     }
 </style>

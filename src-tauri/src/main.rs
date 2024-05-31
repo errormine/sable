@@ -51,6 +51,7 @@ fn init_audio_player() {
             db::register_dir,
             db::get_all_albums,
             db::get_songs_by_album,
+            db::get_all_artists,
             db::remove_album,
             db::remove_song,
             db::update_metadata_song,

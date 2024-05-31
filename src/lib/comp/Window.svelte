@@ -1,8 +1,21 @@
 <script>
+    import { getContext, onMount } from "svelte";
+
+    const tabs = getContext("tabs");
+    
     export let title = "Window";
+    
+    let window;
+    
+    onMount(() => {
+        if (tabs) {
+            // Svelte does not detect push as a change
+            $tabs = [...$tabs, { title, window }];
+        }
+    });
 </script>
 
-<section class="window">
+<section bind:this={window} class="window">
     <header>
         <p class="title">{title}</p>
     </header>

@@ -320,6 +320,28 @@ pub fn get_songs_by_album(title: String, artist: String) -> String {
 }
 
 #[tauri::command]
+pub fn get_all_artists() -> String {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    let mut stmt = db.prepare("SELECT DISTINCT artist FROM album ORDER BY artist").unwrap();
+    let mut rows = stmt.query(params![]).unwrap();
+    
+    let mut artists_json = Vec::new();
+    while let Some(row) = rows.next().unwrap() {
+        let artist: String = row.get(0).unwrap();
+        let album_count: u16 = db.query_row("SELECT COUNT(*) FROM album WHERE artist = ?1", params![artist], |row| row.get(0)).unwrap();
+
+        let artist = json!({
+            "name": artist,
+            "album_count": album_count,
+        });
+        
+        artists_json.push(artist);
+    }
+
+    return json!(artists_json).to_string();
+}
+
+#[tauri::command]
 pub fn remove_album(album: String, artist: String) {
     let db = Connection::open("D:/Documents/music.db").unwrap();
     db.execute("DELETE FROM song WHERE album_title = ?1 AND album_artist = ?2", params![album, artist]).unwrap();

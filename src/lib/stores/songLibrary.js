@@ -16,3 +16,17 @@ export async function refreshSongList() {
     if (album == null) return;
     songList.set(await loadSongs(album));
 }
+
+export const albums = writable([]);
+export const artists = writable([]);
+
+export async function refreshLibrary() {
+    await invoke('get_all_albums').then(albumsJSON => {
+        albums.set(JSON.parse(albumsJSON));
+    });
+
+    await invoke('get_all_artists').then(artistsJSON => {
+        artists.set(JSON.parse(artistsJSON));
+        console.log(get(artists));
+    });
+}
