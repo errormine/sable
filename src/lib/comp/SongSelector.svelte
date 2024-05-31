@@ -9,12 +9,13 @@
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
-    import { activeAlbum, refreshSongList, songList } from '../stores/songLibrary';
+    import { activeAlbum, loadSongs } from '../stores/songLibrary';
     import PopoutWindow from './PopoutWindow.svelte';
     import AlbumCover from './AlbumCover.svelte';
     import IconButton from './IconButton.svelte';
 
     export let domNode = null;
+    export let songList = [];
 
     let owner = null;
     
@@ -33,8 +34,8 @@
             updateSize(domNode.parentNode);
         });
 
-        await listen('register_file_finished', (event) => {
-            refreshSongList();
+        await listen('register_file_finished', async (event) => {
+            songList = await loadSongs(activeAlbum);
             addToast(JSON.parse(event.payload.message));
         });
     });
@@ -51,7 +52,7 @@
 
     function playSongAndQueue(song, offset) {
         play(song);
-        setQueue($songList, offset);
+        setQueue(songList, offset);
     }
 
     function playSelectedSongNext() {
@@ -167,9 +168,9 @@
         </form>
     {/if}
 </PopoutWindow>
-<section bind:this={domNode} class="album-info" class:hidden={$activeAlbum == null}>
+<section bind:this={domNode} class="album-info" class:hidden={songList.length == 0}>
     <section class="album-info-wrapper">
-        {#if $songList && $activeAlbum != null}
+        {#if songList.length > 0}
             <AlbumCover path={$activeAlbum.cover_path} />
             <section class="song-selector">
                 <header class="mb-05">
@@ -177,7 +178,7 @@
                     <p class="subtitle">{$activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
-                    {#each $songList as song, index}
+                    {#each songList as song, index}
                         <li class="song-item">
                             <!-- so long!!!! -->
                             <button class="song" title={song.title} 
