@@ -31,7 +31,7 @@
     }
 
     .artists {
-        padding: 0 0.5rem;
+        padding: 0 0.25rem;
         overflow-y: auto;
     }
 
