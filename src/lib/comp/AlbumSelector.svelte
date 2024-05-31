@@ -1,7 +1,7 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
-    import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
+    import { setQueue, addToQueue, attemptPlayNext, currentSong, beginPlayBack, togglePlayback } from '../stores/audioPlayer';
     import { loadSongs, refreshLibrary } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
@@ -34,7 +34,7 @@
     }
 
     async function playAlbum(album) {
-        setQueue(await loadSongs(album));
+        setQueue(await loadSongs(album), -1);
         attemptPlayNext();
     }
 
