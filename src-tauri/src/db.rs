@@ -1,4 +1,4 @@
-use std::{error::Error, path::{Path, PathBuf}, sync::mpsc, thread, time::Instant};
+use std::{error::Error, path::{Path, PathBuf}, thread};
 
 use audiotags::Tag;
 use jwalk::WalkDir;
@@ -8,27 +8,27 @@ use tauri::Manager;
 
 use crate::audio;
 
-fn get_song_files(dir: &Path) -> Vec<PathBuf> {
-    let mut songs: Vec<PathBuf> = Vec::new();
+fn is_audio_file(path: &Path) -> bool {
+    if !path.is_file() {
+        return false;
+    }
+
+    match path.extension().unwrap().to_str().unwrap() {
+        "mp3" | "flac" | "wav" | "ogg" | "aac" => true,
+        _ => false
+    }
+}
+
+fn get_song_count(dir: &Path) -> i32 {
+    let mut count = 0;
 
     for entry in WalkDir::new(dir).sort(true) {
-        let path = entry.unwrap().path();
-
-        if path.is_file() {
-            let extension = path.extension().unwrap();
-            
-            match extension.to_str().unwrap() {
-                "mp3" => songs.push(path.to_path_buf()),
-                "flac" => songs.push(path.to_path_buf()),
-                "wav" => songs.push(path.to_path_buf()),
-                "ogg" => songs.push(path.to_path_buf()),
-                "aac" => songs.push(path.to_path_buf()),
-                _ => continue
-            }
+        if is_audio_file(&entry.unwrap().path()) {
+            count += 1;
         }
     }
 
-    return songs;
+    return count;
 }
 
 #[derive(Debug)]
@@ -201,14 +201,20 @@ pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
     let dir = dir.to_path_buf();
     
     thread::spawn(move || {
-        let songs = get_song_files(&dir);
-        app.emit_all("total_songs", crate::Payload { message: songs.len().to_string() }).unwrap();
+        let songs = get_song_count(&dir);
+        app.emit_all("total_songs", crate::Payload { message: songs.to_string() }).unwrap();
 
         let mut songs_metadata = Vec::new();
         let mut successful = 0;
         let mut failed = 0;
 
-        for song in songs {
+        for entry in WalkDir::new(&dir).sort(true) {
+            let song = entry.unwrap().path();
+
+            if !is_audio_file(&song) {
+                continue;
+            }
+
             if let Ok(metadata) = get_metadata(&song) {
                 songs_metadata.push(metadata);
                 successful += 1;
@@ -216,8 +222,8 @@ pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
             } else {
                 failed += 1;
                 // TODO: keep track of which files failed to read
-            }
-        }
+            };
+        };
 
         if let Err(e) = commit_to_db(songs_metadata) {
             let result = json!({
