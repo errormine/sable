@@ -3,7 +3,19 @@
     import Window from "../comp/Window.svelte";
     import { artists } from "../stores/songLibrary";
     import CardListItem from "../comp/CardListItem.svelte";
+    import { setActiveTab } from "../stores/windowManager";
 
+    let activeArtist;
+
+    function toggleArtistPage(artist) {
+        if (activeArtist === artist) {
+            setActiveTab("main", "Albums");
+            activeArtist = null;
+            return;
+        }
+        activeArtist = artist;
+        setActiveTab("main", "Artist");
+    }
 </script>
 
 <Window title="Artists">
@@ -14,6 +26,8 @@
                     <CardListItem 
                         title={artist.name} 
                         subtitle={artist.album_count + " albums"}
+                        highlighted={artist === activeArtist}
+                        onClick={() => toggleArtistPage(artist)}
                             >
                         <img src="/assets/placeholder/artist.png" alt={artist.name} />
                     </CardListItem>

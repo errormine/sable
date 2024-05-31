@@ -1,16 +1,16 @@
 <script>
     import { getContext, onMount } from "svelte";
+    import { groups, registerTab } from "../stores/windowManager";
 
-    const tabs = getContext("tabs");
-    
+    const group = getContext("group");
+
     export let title = "Window";
     
     let window;
     
     onMount(() => {
-        if (tabs) {
-            // Svelte does not detect push as a change
-            $tabs = [...$tabs, { title, window }];
+        if (group) {
+            registerTab(group, title, window);
         }
     });
 </script>

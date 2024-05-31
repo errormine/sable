@@ -9,18 +9,19 @@
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
-    import AlbumViewer from './lib/windows/AlbumViewer.svelte';
+    import Albums from './lib/windows/Albums.svelte';
     import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
-    import { onMount } from 'svelte';
+    import { onMount, setContext } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
     import { addToast } from './lib/stores/notifications';
-    import WindowTabs from './lib/comp/WindowTabs.svelte';
     import ArtistPage from './lib/windows/ArtistPage.svelte';
     import Artists from './lib/windows/Artists.svelte';
     import { refreshLibrary } from './lib/stores/songLibrary';
+    import WindowGroup from './lib/comp/WindowGroup.svelte';
+    import { setActiveTab } from './lib/stores/windowManager';
 
     let loadingSongs = false;
     let totalSongs = 0;
@@ -36,6 +37,7 @@
     }
 
     onMount(async () => {
+        setActiveTab('main', 'Albums');
         refreshLibrary();
         stopPlayback();
 
@@ -67,10 +69,10 @@
 </header>
 <main>
     <Artists />
-    <WindowTabs>
-        <AlbumViewer />
+    <WindowGroup name="main">
+        <Albums />
         <ArtistPage />
-    </WindowTabs>
+    </WindowGroup>
     <WindowStack id="right">
         <SongQueue />
         <TrackInfo />

@@ -3,8 +3,8 @@
 
 </script>
 
-<Window title="Artist Name">
+<Window title="Artist">
     <section class="artist">
-
+        
     </section>
 </Window>

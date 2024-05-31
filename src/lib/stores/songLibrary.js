@@ -27,6 +27,5 @@ export async function refreshLibrary() {
 
     await invoke('get_all_artists').then(artistsJSON => {
         artists.set(JSON.parse(artistsJSON));
-        console.log(get(artists));
     });
 }
