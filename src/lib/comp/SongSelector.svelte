@@ -9,12 +9,13 @@
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
-    import { activeAlbum, loadSongs } from '../stores/songLibrary';
+    import { loadSongs } from '../stores/songLibrary';
     import PopoutWindow from './PopoutWindow.svelte';
     import AlbumCover from './AlbumCover.svelte';
     import IconButton from './IconButton.svelte';
 
     export let domNode = null;
+    export let activeAlbum;
     export let songList = [];
 
     let owner = null;
@@ -168,14 +169,14 @@
         </form>
     {/if}
 </PopoutWindow>
-<section bind:this={domNode} class="album-info" class:hidden={songList.length == 0}>
+<section bind:this={domNode} class="album-info" class:hidden={!activeAlbum}>
     <section class="album-info-wrapper">
-        {#if songList.length > 0}
-            <AlbumCover path={$activeAlbum.cover_path} />
+        {#if activeAlbum}
+            <AlbumCover path={activeAlbum.cover_path} />
             <section class="song-selector">
                 <header class="mb-05">
-                    <h2>{$activeAlbum.title}</h2>
-                    <p class="subtitle">{$activeAlbum.artist}</p>
+                    <h2>{activeAlbum.title}</h2>
+                    <p class="subtitle">{activeAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
                     {#each songList as song, index}

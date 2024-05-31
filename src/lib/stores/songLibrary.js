@@ -1,8 +1,6 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { get, writable } from "svelte/store";
 
-export const activeAlbum = writable(null);
-
 export async function loadSongs(album) {
     return await invoke('get_songs_by_album', { title: album.title, artist: album.artist })
         .then(songsJSON => {

@@ -2,12 +2,13 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
-    import { activeAlbum, loadSongs, refreshLibrary } from '../stores/songLibrary';
+    import { loadSongs, refreshLibrary } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
 
     export let albums;
 
+    let activeAlbum;
     let albumSelector;
     let albumEditDialog;
     let songSelector;
@@ -15,8 +16,8 @@
 
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
-        if ($activeAlbum != album) {
-            $activeAlbum = album;
+        if (activeAlbum != album) {
+            activeAlbum = album;
             songList = await loadSongs(album);
             
             // Show song selector
@@ -27,7 +28,7 @@
         } else {
             // Ignore double clicks
             if (e.detail > 1) return;
-            $activeAlbum = null;
+            activeAlbum = null;
             songList = [];
         }
     }
@@ -78,7 +79,7 @@
     {:else}
         <p>No albums found</p>
     {/if}
-    <SongSelector bind:this={songSelector} {songList} />
+    <SongSelector bind:this={songSelector} {activeAlbum} {songList} />
 </section>
 <ContextMenu bind:this={albumContextMenu}>
     <Item on:click={playSelectedAlbumNext}>Play Next</Item>
