@@ -29,3 +29,12 @@ export async function refreshLibrary() {
         artists.set(JSON.parse(artistsJSON));
     });
 }
+
+export const activeArtist = writable(null);
+
+export async function loadAlbums(artist) {
+    return await invoke('get_albums_by_artist', { artist: artist })
+        .then(albumsJSON => {
+            return JSON.parse(albumsJSON);
+        });
+}

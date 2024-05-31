@@ -1,19 +1,17 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import Window from "../comp/Window.svelte";
-    import { artists } from "../stores/songLibrary";
+    import { activeArtist, artists } from "../stores/songLibrary";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
 
-    let activeArtist;
-
     function toggleArtistPage(artist) {
-        if (activeArtist === artist) {
+        if ($activeArtist === artist) {
             setActiveTab("main", "Albums");
-            activeArtist = null;
+            $activeArtist = null;
             return;
         }
-        activeArtist = artist;
+        $activeArtist = artist;
         setActiveTab("main", "Artist");
     }
 </script>
@@ -26,7 +24,7 @@
                     <CardListItem 
                         title={artist.name} 
                         subtitle={artist.album_count + " albums"}
-                        highlighted={artist === activeArtist}
+                        highlighted={artist === $activeArtist}
                         onClick={() => toggleArtistPage(artist)}
                             >
                         <img src="/assets/placeholder/artist.png" alt={artist.name} />

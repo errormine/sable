@@ -88,7 +88,7 @@
     main {
         max-height: var(--main-window-height);
         display: grid;
-        grid-template-columns: 14rem 1fr 20rem;
+        grid-template-columns: 16rem 1fr 20rem;
         background: var(--clr-gray-1);
 
         & > section {

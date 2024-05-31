@@ -286,6 +286,34 @@ pub fn get_all_albums() -> String {
 }
 
 #[tauri::command]
+pub fn get_albums_by_artist(artist: String) -> String {
+    let db = Connection::open("D:/Documents/music.db").unwrap();
+    let mut stmt = db.prepare("SELECT * FROM album WHERE artist = ?1 ORDER BY title").unwrap();
+    let mut rows = stmt.query(params![artist]).unwrap();
+    
+    let mut albums_json = Vec::new();
+    while let Some(row) = rows.next().unwrap() {
+        let cover_path: String = row.get(0).unwrap_or_default();
+        let title: String = row.get(1).unwrap();
+        let artist: String = row.get(2).unwrap();
+        let year: u32 = row.get(3).unwrap_or(0);
+        let genre: String = row.get(4).unwrap();
+
+        let album = json!({
+            "cover_path": cover_path,
+            "title": title,
+            "artist": artist,
+            "year": year,
+            "genre": genre,
+        });
+
+        albums_json.push(album);
+    }
+
+    return json!(albums_json).to_string();
+}
+
+#[tauri::command]
 pub fn get_songs_by_album(title: String, artist: String) -> String {
     let db = Connection::open("D:/Documents/music.db").unwrap();
     let mut stmt = db.prepare("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number").unwrap();
