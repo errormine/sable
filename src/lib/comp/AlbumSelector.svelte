@@ -8,6 +8,13 @@
 
     export let albums;
 
+    $: albums, clearActiveAlbum();
+
+    function clearActiveAlbum() {
+        activeAlbum = null;
+        songList = [];
+    }
+
     let activeAlbum;
     let albumSelector;
     let albumEditDialog;
