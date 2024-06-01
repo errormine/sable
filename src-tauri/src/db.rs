@@ -90,7 +90,6 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let mut cover_path = None;
     let album_jpg = format!("{}.jpg", album_title.clone()).to_ascii_lowercase();
     let album_png = format!("{}.png", album_title.clone()).to_ascii_lowercase();
-    println!("album_jpg: {}", album_jpg);
     let cover_names = [
         "cover.jpg", "cover.png", 
         "folder.jpg", "folder.png", 
