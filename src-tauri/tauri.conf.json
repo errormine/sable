@@ -12,12 +12,16 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "http": {
+        "request": true,
+        "scope": ["https://www.last.fm/*", "https://api.deezer.com/*"]
+      },
       "shell": {
         "all": false,
         "open": true
       },
       "dialog": {
-        "all": true
+        "open": true
       },
       "fs": {
         "all": true,

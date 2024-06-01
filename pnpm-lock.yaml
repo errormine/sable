@@ -14,6 +14,9 @@ importers:
       '@tauri-apps/api':
         specifier: ^1
         version: 1.5.6
+      tauri-plugin-stronghold-api:
+        specifier: github:tauri-apps/tauri-plugin-stronghold#v1
+        version: https://codeload.github.com/tauri-apps/tauri-plugin-stronghold/tar.gz/b2fb75dd06ba927a6a266613c6c2e553507e489a
       tauri-settings:
         specifier: ^0.3.5
         version: 0.3.5
@@ -333,6 +336,10 @@ packages:
     peerDependencies:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.0
+
+  '@tauri-apps/api@1.5.3':
+    resolution: {integrity: sha512-zxnDjHHKjOsrIzZm6nO5Xapb/BxqUq1tc7cGkFXsFkGTsSWgCPH1D8mm0XS9weJY2OaR73I3k3S+b7eSzJDfqA==}
+    engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
 
   '@tauri-apps/api@1.5.6':
     resolution: {integrity: sha512-LH5ToovAHnDVe5Qa9f/+jW28I6DeMhos8bNDtBOmmnaDpPmJmYLyHdeDblAWWWYc7KKRDg9/66vMuKyq0WIeFA==}
@@ -665,6 +672,10 @@ packages:
     resolution: {integrity: sha512-N7m1YnoXtRf5wya5Gyx3TWuTddI4nAyayyIWFojiWV5IayDYNV5i2mRp/7qNGol4DtxEYxljmrbgp1HM6hUbmQ==}
     engines: {node: '>=16'}
 
+  tauri-plugin-stronghold-api@https://codeload.github.com/tauri-apps/tauri-plugin-stronghold/tar.gz/b2fb75dd06ba927a6a266613c6c2e553507e489a:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-stronghold/tar.gz/b2fb75dd06ba927a6a266613c6c2e553507e489a}
+    version: 0.0.0
+
   tauri-settings@0.3.5:
     resolution: {integrity: sha512-07v+i6ig+z1eWHm9WYAvOpFPM7afeKZZmM0egIY0aLSleaZy33zEiKmefNKI+G8ymOAJX/ZYN1N1cM2lyGOiJw==}
 
@@ -964,6 +975,8 @@ snapshots:
       vitefu: 0.2.5(vite@5.2.11)
     transitivePeerDependencies:
       - supports-color
+
+  '@tauri-apps/api@1.5.3': {}
 
   '@tauri-apps/api@1.5.6': {}
 
@@ -1302,6 +1315,10 @@ snapshots:
       locate-character: 3.0.0
       magic-string: 0.30.10
       periscopic: 3.1.0
+
+  tauri-plugin-stronghold-api@https://codeload.github.com/tauri-apps/tauri-plugin-stronghold/tar.gz/b2fb75dd06ba927a6a266613c6c2e553507e489a:
+    dependencies:
+      '@tauri-apps/api': 1.5.3
 
   tauri-settings@0.3.5: {}
 

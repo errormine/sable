@@ -34,6 +34,14 @@ fn init_audio_player() {
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
 
     tauri::Builder::default()
+        .setup(|app| {
+            // https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/stronghold
+            let salt_path = app.path_resolver().app_local_data_dir().expect("Failed to get app data dir").join("salt.txt");
+
+            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+
+            Ok(())
+        })
         .manage(MusicPlayer {
             sink: rodio::Sink::try_new(&stream_handle).unwrap()
         })

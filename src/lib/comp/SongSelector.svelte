@@ -229,7 +229,7 @@
 
     .song-list {
         column-count: auto;
-        column-width: 22vw;
+        column-width: 20vw;
         column-gap: 3rem;
     }
     

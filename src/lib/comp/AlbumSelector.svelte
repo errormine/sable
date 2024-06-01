@@ -94,10 +94,10 @@
 
 <style>
     .album-selector {
-        overflow-y: auto;
+        overflow-x: hidden;
         scroll-behavior: smooth;
-        padding: 0.5rem;
         background: var(--clr-gray-1);
+        padding: 0.5rem;
 
         & > ul {
             display: grid;
