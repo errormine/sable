@@ -33,6 +33,7 @@ fn get_song_count(dir: &Path) -> i32 {
 
 #[derive(Debug)]
 struct SongMetadata {
+    parent_dir: String,
     file_path: String,
     cover_path: Option<String>,
     title: String,
@@ -49,6 +50,7 @@ struct SongMetadata {
 impl Clone for SongMetadata {
     fn clone(&self) -> Self {
         SongMetadata {
+            parent_dir: self.parent_dir.clone(),
             file_path: self.file_path.clone(),
             cover_path: self.cover_path.clone(),
             title: self.title.clone(),
@@ -75,9 +77,28 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let tag = Tag::new().read_from_path(&song)?;
     
     let file_path = song.clone().into_os_string().into_string().unwrap();
+    let parent_dir = song.parent().unwrap().to_str().unwrap();
+
+    let title = tag_to_string(tag.title());
+    let artist = tag_to_string(tag.artist());
+    let album_title = tag_to_string(tag.album_title());
+    let album_artist = match tag.album_artist() {
+        Some(album_artist) => String::from(album_artist),
+        None => String::from(&artist)
+    };
+
     let mut cover_path = None;
-    let cover_names = ["cover.jpg", "cover.png", "folder.jpg", "folder.png", "front.jpg", "front.png"];
-    for entry in WalkDir::new(song.parent().unwrap()) {
+    let album_jpg = format!("{}.jpg", album_title.clone()).to_ascii_lowercase();
+    let album_png = format!("{}.png", album_title.clone()).to_ascii_lowercase();
+    println!("album_jpg: {}", album_jpg);
+    let cover_names = [
+        "cover.jpg", "cover.png", 
+        "folder.jpg", "folder.png", 
+        "front.jpg", "front.png", 
+        album_jpg.as_str(), 
+        album_png.as_str()
+    ];
+    for entry in WalkDir::new(&parent_dir) {
         let path = entry.unwrap().path();
 
         if path.is_file() {
@@ -91,14 +112,6 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
         };
     };
 
-    let title = tag_to_string(tag.title());
-    let artist = tag_to_string(tag.artist());
-    let album_title = tag_to_string(tag.album_title());
-    let album_artist = match tag.album_artist() {
-        Some(album_artist) => String::from(album_artist),
-        None => String::from(&artist)
-    };
-
     let track_number = tag.track_number().unwrap_or(0);
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
@@ -110,6 +123,7 @@ fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let genre = tag_to_string(tag.genre());
 
     return Ok(SongMetadata {
+        parent_dir: parent_dir.to_string(),
         file_path,
         cover_path,
         title,
@@ -130,9 +144,10 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
 
     for song in songs {
         tx.execute(
-            "INSERT OR REPLACE INTO album (cover_path, title, artist, year, genre) 
-            VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![
+                &song.parent_dir,
                 &song.cover_path,
                 &song.album_title,
                 &song.album_artist,
@@ -262,13 +277,15 @@ pub fn get_all_albums() -> String {
             
             let mut albums_json = Vec::new();
             while let Some(row) = rows.next().unwrap() {
-                let cover_path: String = row.get(0).unwrap_or_default();
-                let title: String = row.get(1).unwrap();
-                let artist: String = row.get(2).unwrap();
-                let year: u32 = row.get(3).unwrap_or(0);
-                let genre: String = row.get(4).unwrap();
+                let location_on_disk: String = row.get(0).unwrap();
+                let cover_path: String = row.get(1).unwrap_or_default();
+                let title: String = row.get(2).unwrap();
+                let artist: String = row.get(3).unwrap();
+                let year: u32 = row.get(4).unwrap_or(0);
+                let genre: String = row.get(5).unwrap();
 
                 let album = json!({
+                    "location_on_disk": location_on_disk,
                     "cover_path": cover_path,
                     "title": title,
                     "artist": artist,

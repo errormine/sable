@@ -1,6 +1,7 @@
 BEGIN TRANSACTION;
 
 CREATE TABLE IF NOT EXISTS album (
+    location_on_disk TEXT NOT NULL,
     cover_path TEXT,
     title TEXT NOT NULL,
     artist TEXT NOT NULL,

@@ -5,6 +5,7 @@
     import { loadSongs, refreshLibrary } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
+    import { downloadCoverImage, getAlbumImage } from '../stores/lastfmAPI';
 
     export let albums;
 
@@ -59,6 +60,7 @@
     }
 
     async function playSelectedAlbumNext() {
+        // TODO: Make this just add the album after the current song
         setQueue(await loadSongs(selectedAlbum));
         if ($currentSong.title == '') {
             attemptPlayNext();
@@ -67,6 +69,11 @@
 
     async function addSelectedToQueue() {
         addToQueue(await loadSongs(selectedAlbum));
+    }
+
+    async function downloadSelectedAlbumCover() {
+        await downloadCoverImage(selectedAlbum);
+        await invoke('register_dir', { dir: selectedAlbum.location_on_disk });
     }
 </script>
 
@@ -94,6 +101,7 @@
     <Item>Shuffle Play</Item>
     <Divider />
     <Item on:click={() => albumEditDialog.showModal()}>Edit</Item>
+    <Item on:click={downloadSelectedAlbumCover}>Download Cover Image</Item>
     <Item on:click={removeSelectedAlbum}>Remove</Item>
     <Divider />
     <Item>Open File Location</Item>

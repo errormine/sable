@@ -46,6 +46,7 @@ fn init_audio_player() {
             sink: rodio::Sink::try_new(&stream_handle).unwrap()
         })
         .invoke_handler(tauri::generate_handler![
+            write_file,
             audio::play,
             audio::add_to_queue,
             audio::pause,
@@ -67,4 +68,10 @@ fn init_audio_player() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[tauri::command]
+fn write_file(path: String, contents: Vec<u8>) {
+    println!("Writing file to: {}", path);
+    fs::write(path, contents);
 }

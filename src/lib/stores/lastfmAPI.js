@@ -1,10 +1,18 @@
-import { http } from "@tauri-apps/api";
+import { fs, http } from "@tauri-apps/api";
 import { ResponseType } from "@tauri-apps/api/http";
+import { invoke } from "@tauri-apps/api/tauri";
 
 const ApiCredentials = {
     apiKey: import.meta.env.VITE_LASTFM_API_KEY,
     secret: import.meta.env.VITE_LASTFM_API_SECRET,
 };
+
+async function download(url, dest) {
+    const client = await http.getClient();
+    const response = await client.get(url, { responseType: ResponseType.Binary });
+
+    await invoke("write_file", { path: dest, contents: response.data });
+}
 
 export async function retrieveFromCache(name) {
     let cached = localStorage.getItem(name.toLowerCase());
@@ -34,8 +42,6 @@ export async function getArtistInfo(name) {
 
 async function getArtistImageLastFm(artist) {
     if (!artist || !artist.url) return null;
-
-    
     
     let lastFmImage = http.fetch(artist.url, {
             method: 'GET',
@@ -95,4 +101,34 @@ export async function getArtistTags(name) {
     let artistInfo = await getArtistInfo(name);
 
     return artistInfo.tags.tag;
+}
+
+export async function getAlbumId(title, artist) {
+    return http.fetch(`https://api.deezer.com/search/album?q=artist:"${artist}" album:"${title}"&limit=1`)
+        .then(res => res.data)
+        .then(data => {
+            return data.data[0].id;
+        });
+}
+
+export async function getAlbumDeezer(id) {
+    return http.fetch(`https://api.deezer.com/album/${id}`)
+        .then(res => res.data)
+        .then(data => {
+            return data;
+        });
+}
+
+export async function getAlbumImage(title, artist) {
+    let albumId = await getAlbumId(title, artist);
+    let album = await getAlbumDeezer(albumId);
+
+    return album.cover_xl;
+}
+
+export async function downloadCoverImage(album) {
+    let albumImage = await getAlbumImage(album.title, album.artist);
+    let dest = album.location_on_disk + "/Cover.jpg";
+
+    await download(albumImage, dest);
 }
