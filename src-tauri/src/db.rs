@@ -304,19 +304,22 @@ pub fn get_all_albums() -> String {
 
 #[tauri::command]
 pub fn get_albums_by_artist(artist: String) -> String {
+    // TODO: These functions need to be abstracted somehow cause they're almost identical
     let db = Connection::open("D:/Documents/music.db").unwrap();
     let mut stmt = db.prepare("SELECT * FROM album WHERE artist = ?1 ORDER BY title").unwrap();
     let mut rows = stmt.query(params![artist]).unwrap();
     
     let mut albums_json = Vec::new();
     while let Some(row) = rows.next().unwrap() {
-        let cover_path: String = row.get(0).unwrap_or_default();
-        let title: String = row.get(1).unwrap();
-        let artist: String = row.get(2).unwrap();
-        let year: u32 = row.get(3).unwrap_or(0);
-        let genre: String = row.get(4).unwrap();
+        let location_on_disk: String = row.get(0).unwrap();
+        let cover_path: String = row.get(1).unwrap_or_default();
+        let title: String = row.get(2).unwrap();
+        let artist: String = row.get(3).unwrap();
+        let year: u32 = row.get(4).unwrap_or(0);
+        let genre: String = row.get(5).unwrap();
 
         let album = json!({
+            "location_on_disk": location_on_disk,
             "cover_path": cover_path,
             "title": title,
             "artist": artist,
