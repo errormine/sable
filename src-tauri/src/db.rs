@@ -219,16 +219,6 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
     return Ok(());
 }
 
-// #[tauri::command]
-// pub fn register_file(file_path: &Path) -> Result<String, String> {
-//     let file_path = file_path.to_path_buf();
-//     let metadata = get_song_metadata(&file_path).map_err(|e| e.to_string())?;
-//     let songs_metadata = vec![metadata];
-
-//     commit_to_db(songs_metadata).map_err(|e| e.to_string())?;
-//     return Ok("File registered successfully".into());
-// }
-
 #[tauri::command]
 pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String> {
     let dir = dir.to_path_buf();

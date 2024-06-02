@@ -56,7 +56,6 @@ fn init_audio_player() {
             audio::skip_forward,
             audio::skip_backward,
             audio::set_volume,
-            // db_refactor::register_file,
             db::register_dir,
             db::get_all_albums,
             db::get_albums_by_artist,
