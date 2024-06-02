@@ -40,7 +40,6 @@
     let songEditDialog;
     let songContextMenu;
     let selectedSong;
-    let editingSong;
 
     function showSongMenu(e, song) {
         songContextMenu.show(e);
@@ -64,10 +63,14 @@
         await invoke('remove_song', selectedSong);
     }
 
-    function showEditDialog() {
-        editingSong = selectedSong;
-
+    // TODO: this logic is duplicated in AlbumSelector.svelte and should probably be moved to a shared location
+    function openEditDialog() {
         songEditDialog.showModal();
+    }
+
+    function closeEditDialog() {
+        selectedSong = null;
+        songEditDialog.close();
     }
 
     async function getNewCover() {
@@ -78,7 +81,7 @@
 
         if (coverPath) {
             songEditDialog.querySelector('#cover-path').value = coverPath;
-            editingSong.cover_path = coverPath;
+            selectedSong.cover_path = coverPath;
         }
     }
 
@@ -87,7 +90,7 @@
 
         await invokeWithToast('update_metadata_song', {
             locationOnDisk: activeAlbum.location_on_disk,
-            filePath: editingSong.file_path,
+            filePath: selectedSong.file_path,
             coverPath: formData.get('cover-path'),
             title: formData.get('title'),
             artist: formData.get('artist'),
@@ -99,16 +102,16 @@
             genre: formData.get('genre')
         });
 
-        songEditDialog.close();
+        closeEditDialog();
         songList = await loadSongs(activeAlbum);
     }
 </script>
 
-<PopoutWindow bind:dialog={songEditDialog} title={editingSong ? editingSong.title : ""}>
-    {#if editingSong}
+<PopoutWindow bind:dialog={songEditDialog} title={selectedSong ? selectedSong.title : ""} onClose={closeEditDialog}>
+    {#if selectedSong}
         <form class="item-edit-form">
             <fieldset>
-                <label for="cover-path"><AlbumCover path={editingSong.cover_path}/></label>
+                <label for="cover-path"><AlbumCover path={selectedSong.cover_path}/></label>
                 <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path">
                 <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
             </fieldset>
@@ -116,42 +119,42 @@
             <fieldset>
                 <label for="title">
                     <span>Title</span>
-                    <input type="text" id="title" name="title" value={editingSong.title}>
+                    <input type="text" id="title" name="title" value={selectedSong.title}>
                 </label>
         
                 <label for="artist">
                     <span>Artist</span>
-                    <input type="text" id="artist" name="artist" value={editingSong.artist}>
+                    <input type="text" id="artist" name="artist" value={selectedSong.artist}>
                 </label>
         
                 <label for="album">
                     <span>Album Title</span>
-                    <input type="text" id="album-title" name="album-title" value={editingSong.album_title}>
+                    <input type="text" id="album-title" name="album-title" value={selectedSong.album_title}>
                 </label>
         
                 <label for="album-artist">
                     <span>Album Artist</span>
-                    <input type="text" id="album-artist" name="album-artist" value={editingSong.album_artist}>
+                    <input type="text" id="album-artist" name="album-artist" value={selectedSong.album_artist}>
                 </label>
         
                 <label for="track-number">
                     <span>Track Number</span>
-                    <input type="number" id="track-number" name="track-number" value={editingSong.track_number}>
+                    <input type="number" id="track-number" name="track-number" value={selectedSong.track_number}>
                 </label>
         
                 <label for="disc-number">
                     <span>Disc Number</span>
-                    <input type="number" id="disc-number" name="disc-number" value={editingSong.disc_number}>
+                    <input type="number" id="disc-number" name="disc-number" value={selectedSong.disc_number}>
                 </label>
         
                 <label for="year">
                     <span>Year</span>
-                    <input type="number" id="year" name="year" value={editingSong.year}>
+                    <input type="number" id="year" name="year" value={selectedSong.year}>
                 </label>
         
                 <label for="genre">
                     <span>Genre</span>
-                    <input type="text" id="genre" name="genre" value={editingSong.genre}>
+                    <input type="text" id="genre" name="genre" value={selectedSong.genre}>
                 </label>
             </fieldset>
             
@@ -175,7 +178,7 @@
                         <li class="song-item">
                             <!-- so long!!!! -->
                             <button class="song" title={song.title} 
-                                class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
+                                class:active={selectedSong == song}
                                 on:click={() => playSongAndQueue(song, index)}
                                 on:contextmenu={(e) => showSongMenu(e, song)}>
                                 <span class="track-number">{song.track_number}</span>
@@ -192,7 +195,7 @@
         <Item on:click={playSelectedSongNext}>Play Next</Item>
         <Item on:click={addSelectedToQueue}>Add to Queue</Item>
         <Divider />
-        <Item on:click={showEditDialog}>Edit</Item>
+        <Item on:click={openEditDialog}>Edit</Item>
         <Item on:click={removeSelectedSong}>Remove</Item>
         <Divider />
         <Item>Open File Location</Item>

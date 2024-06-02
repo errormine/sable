@@ -1,11 +1,15 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
+    import { open } from '@tauri-apps/api/dialog';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { setQueue, addToQueue, attemptPlayNext, currentSong, beginPlayBack, togglePlayback } from '../stores/audioPlayer';
     import { loadSongs, refreshLibrary } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
     import { downloadCoverImage, getAlbumImage } from '../stores/lastfmAPI';
+    import PopoutWindow from './PopoutWindow.svelte';
+    import AlbumCover from './AlbumCover.svelte';
+    import { invokeWithToast } from '../utils';
 
     export let albums;
 
@@ -18,7 +22,6 @@
 
     let activeAlbum;
     let albumSelector;
-    let albumEditDialog;
     let songSelector;
     let songList;
 
@@ -49,7 +52,7 @@
     let albumContextMenu;
     let selectedAlbum;
     
-    function showAlbumMenu(e, album) {
+    function showAlbumContextMenu(e, album) {
         albumContextMenu.show(e);
         selectedAlbum = album;
     }
@@ -75,8 +78,84 @@
         await downloadCoverImage(selectedAlbum);
         await invoke('register_dir', { dir: selectedAlbum.location_on_disk });
     }
+
+    let albumEditDialog;
+
+    function openEditDialog() {
+        albumEditDialog.showModal();
+    }
+
+    function closeEditDialog() {
+        selectedAlbum = null;
+        albumEditDialog.close();
+    }
+
+    async function getNewCover() {
+        const coverPath = await open({
+            filters: [{ name: 'Images', extensions: ['jpg', 'png'] }],
+            multiple: false
+        });
+
+        if (coverPath) {
+            albumEditDialog.querySelector('#cover-path').value = coverPath;
+            selectedAlbum.cover_path = coverPath;
+        }
+    }
+
+    async function updateAlbum() {
+        let formData = new FormData(albumEditDialog.querySelector('form'));
+
+        await invokeWithToast('update_metadata_album', {
+            locationOnDisk: selectedAlbum.location_on_disk,
+            coverPath: formData.get('cover-path'),
+            title: formData.get('title'),
+            artist: formData.get('artist'),
+            year: Number(formData.get('year')),
+            genre: formData.get('genre'),
+        });
+
+        albumEditDialog.close();
+        await refreshLibrary();
+    }
 </script>
 
+<PopoutWindow bind:dialog={albumEditDialog} title={selectedAlbum ? selectedAlbum.title : ""} onClose={closeEditDialog}>
+    {#if selectedAlbum}
+        <form class="item-edit-form">
+            <fieldset>
+                <label for="cover-path"><AlbumCover path={selectedAlbum.cover_path}/></label>
+                <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path">
+                <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
+            </fieldset>
+
+            <fieldset>
+                <label for="title">
+                    <span>Title</span>
+                    <input type="text" id="title" name="title" value={selectedAlbum.title}>
+                </label>
+        
+                <label for="artist">
+                    <span>Artist</span>
+                    <input type="text" id="artist" name="artist" value={selectedAlbum.artist}>
+                </label>
+        
+                <label for="year">
+                    <span>Year</span>
+                    <input type="number" id="year" name="year" value={selectedAlbum.year}>
+                </label>
+        
+                <label for="genre">
+                    <span>Genre</span>
+                    <input type="text" id="genre" name="genre" value={selectedAlbum.genre}>
+                </label>
+            </fieldset>
+            
+            <fieldset class="footer">
+                <button type="button" on:click={updateAlbum}>Save</button>
+            </fieldset>
+        </form>
+    {/if}
+</PopoutWindow>
 <section bind:this={albumSelector} class="album-selector">
     {#if albums}
         <ul>
@@ -85,7 +164,7 @@
                     <Album 
                         on:click={(e) => displayAlbumDetails(e, album)} 
                         on:dblclick={() => playAlbum(album)}
-                        on:contextmenu={(e) => showAlbumMenu(e, album)}
+                        on:contextmenu={(e) => showAlbumContextMenu(e, album)}
                         {album}/>
                 </li>
             {/each}
@@ -100,7 +179,7 @@
     <Item on:click={addSelectedToQueue}>Add to Queue</Item>
     <Item>Shuffle Play</Item>
     <Divider />
-    <Item on:click={() => albumEditDialog.showModal()}>Edit</Item>
+    <Item on:click={openEditDialog}>Edit</Item>
     <Item on:click={downloadSelectedAlbumCover}>Download Cover Image</Item>
     <Item on:click={removeSelectedAlbum}>Remove</Item>
     <Divider />

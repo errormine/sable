@@ -361,6 +361,26 @@ pub fn remove_song(file_path: String) {
 }
 
 #[tauri::command]
+pub fn update_metadata_album(
+    location_on_disk: String,
+    cover_path: String,
+    title: String,
+    artist: String,
+    year: i32,
+    genre: String
+) -> Result<String, String> {
+    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist, year, genre)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![location_on_disk, cover_path, title, artist, year, genre]
+    ).map_err(|e| e.to_string())?;
+
+    Ok("Album updated".into())
+}
+
+#[tauri::command]
 pub fn update_metadata_song(
     location_on_disk: String,
     file_path: String,

@@ -5,12 +5,13 @@
 
     export let title = 'Window';
     export let dialog;
+    export let onClose = () => dialog.close();
 </script>
 
 <dialog bind:this={dialog} use:draggable={{ bounds:'body', handle: '.title-bar'}} class="song-edit-dialog">
     <header class="title-bar">
         <h3>{title}</h3>
-        <IconButton on:click={() => dialog.close()}><IonIosClose/></IconButton>
+        <IconButton on:click={onClose}><IonIosClose/></IconButton>
     </header>
     <slot />
 </dialog>
