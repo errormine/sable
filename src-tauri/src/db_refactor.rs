@@ -2,8 +2,8 @@ use std::{collections::HashMap, error::Error, path::{Path, PathBuf}};
 
 use audiotags::Tag;
 use jwalk::WalkDir;
-use rusqlite::{params, Connection};
-use serde_json::json;
+use rusqlite::{params, Connection, Params};
+use serde_json::Value;
 use tauri::Manager;
 
 use crate::audio;
@@ -105,6 +105,13 @@ fn find_cover_art(dir: &Path, album_title: &str) -> Option<String> {
             continue;
         }
 
+        let valid_extensions = ["jpg", "png", "jpeg", "gif", "bmp", "webp"];
+        if let Some(extension) = entry.path().extension() {
+            if !valid_extensions.contains(&extension.to_str().unwrap_or_default()) {
+                continue;
+            }
+        }
+
         let lowercase = entry.path().file_stem().unwrap_or_default().to_ascii_lowercase();
         let name = lowercase.to_str().unwrap_or_default();
         let cover_keywords = ["cover", "folder", "front", &album_title.to_ascii_lowercase()];
@@ -133,10 +140,21 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let track_number = tag.track_number().unwrap_or(0);
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
-        // This is really slow, but most songs don't have the duration tag :(
-        Some(d) => d as u64,
+        Some(d) => {
+            // Attempt to convert milliseconds to seconds (PROBABLY NOT RELIABLE)
+            // If the duration divided by 1000 is less than 10, assume it's in seconds
+            let seconds = (d as u64) / 1000;
+
+            if seconds < 10 {
+                d as u64
+            } else {
+                seconds
+            }
+        },
         None => audio::get_duration(&file_path)
     };
+
+
 
     let year = tag.year().unwrap_or(0);
     let genre = tag.genre().unwrap_or_default().to_string();
@@ -161,12 +179,16 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
     let tx = db.transaction()?;
 
     for (_, album) in albums {
+        let cover_path = album.cover_path.clone().unwrap_or_default();
+
+        tx.execute("INSERT OR IGNORE INTO artist (name) VALUES (?1)", params![&album.artist])?;
+
         tx.execute(
             "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![
                 &album.location_on_disk,
-                &album.cover_path.unwrap_or_default(),
+                &cover_path,
                 &album.title,
                 &album.artist,
                 &album.year,
@@ -176,10 +198,11 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
 
         for song in album.songs {
             tx.execute(
-                "INSERT OR REPLACE INTO song (file_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+                "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
                 params![
                     &song.file_path,
+                    &cover_path,
                     &song.title,
                     &song.artist,
                     &song.album_title,
@@ -238,7 +261,7 @@ pub fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String>
 
         match get_song_metadata(&song_path) {
             Ok(metadata) => {
-                if current_album.title != metadata.album_title && current_album.artist != metadata.album_artist {
+                if current_album.title != metadata.album_title || current_album.artist != metadata.album_artist {
                     if !current_album.songs.is_empty() {
                         albums.insert(current_album.title.clone(), current_album.clone());
                     }
@@ -277,133 +300,63 @@ pub fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String>
     Ok(message.into())
 }
 
-#[tauri::command]
-pub fn get_all_albums() -> String {
-    let db = Connection::open("D:/Documents/music.db");
+fn query_to_json<T: Params>(conn: &Connection, query: &str, params: T) -> Result<String, Box<dyn Error>> {
+    let mut stmt = conn.prepare(query)?;
+    let cached_stmt = conn.prepare_cached(query)?;
+    let mut results = Vec::new();
+    let mut rows = stmt.query(params)?;
 
-    match db {
-        Ok(db) => {
-            let mut stmt = db.prepare("SELECT * FROM album ORDER BY artist, title").unwrap();
-            let mut rows = stmt.query(params![]).unwrap();
-            
-            let mut albums_json = Vec::new();
-            while let Some(row) = rows.next().unwrap() {
-                let location_on_disk: String = row.get(0).unwrap();
-                let cover_path: String = row.get(1).unwrap_or_default();
-                let title: String = row.get(2).unwrap();
-                let artist: String = row.get(3).unwrap();
-                let year: u32 = row.get(4).unwrap_or(0);
-                let genre: String = row.get(5).unwrap();
+    while let Some(row) = rows.next()? {
+        let mut row_map = HashMap::new();
+        for (i, col_name) in cached_stmt.column_names().iter().enumerate() {
+            let value: Value = match row.get_ref(i)? {
+                rusqlite::types::ValueRef::Null => Value::Null,
+                rusqlite::types::ValueRef::Integer(i) => Value::Number(i.into()),
+                rusqlite::types::ValueRef::Real(r) => Value::Number(serde_json::Number::from_f64(r).unwrap()),
+                rusqlite::types::ValueRef::Text(t) => Value::String(String::from_utf8(t.to_vec()).unwrap()),
+                rusqlite::types::ValueRef::Blob(b) => Value::String(hex::encode(b)),
+            };
+            row_map.insert(col_name.to_string(), value);
+        }
+        results.push(row_map);
+    }
 
-                let album = json!({
-                    "location_on_disk": location_on_disk,
-                    "cover_path": cover_path,
-                    "title": title,
-                    "artist": artist,
-                    "year": year,
-                    "genre": genre,
-                });
+    let json = serde_json::to_string(&results)?;
+    Ok(json)
+}
 
-                albums_json.push(album);
-            }
+fn query_row_params<T: Params>(query: &str, params: T) -> Result<String, String> {
+    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+    let json = query_to_json(&conn, query, params).map_err(|e| e.to_string())?;
 
-            return json!(albums_json).to_string();
-        },
-        Err(_) => return String::from("[]")
-    };
+    Ok(json)
+}
+
+fn query_row(query: &str) -> Result<String, String> {
+    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+    let json = query_to_json(&conn, query, params![]).map_err(|e| e.to_string())?;
+
+    Ok(json)
 }
 
 #[tauri::command]
-pub fn get_albums_by_artist(artist: String) -> String {
-    // TODO: These functions need to be abstracted somehow cause they're almost identical
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    let mut stmt = db.prepare("SELECT * FROM album WHERE artist = ?1 ORDER BY title").unwrap();
-    let mut rows = stmt.query(params![artist]).unwrap();
-    
-    let mut albums_json = Vec::new();
-    while let Some(row) = rows.next().unwrap() {
-        let location_on_disk: String = row.get(0).unwrap();
-        let cover_path: String = row.get(1).unwrap_or_default();
-        let title: String = row.get(2).unwrap();
-        let artist: String = row.get(3).unwrap();
-        let year: u32 = row.get(4).unwrap_or(0);
-        let genre: String = row.get(5).unwrap();
-
-        let album = json!({
-            "location_on_disk": location_on_disk,
-            "cover_path": cover_path,
-            "title": title,
-            "artist": artist,
-            "year": year,
-            "genre": genre,
-        });
-
-        albums_json.push(album);
-    }
-
-    return json!(albums_json).to_string();
+pub fn get_all_albums() -> Result<String, String> {
+    query_row("SELECT * FROM album ORDER BY artist, title")
 }
 
 #[tauri::command]
-pub fn get_songs_by_album(title: String, artist: String) -> String {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    let mut stmt = db.prepare("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number").unwrap();
-    let mut rows = stmt.query(params![title, artist]).unwrap();
-    
-    let mut songs_json = Vec::new();
-    while let Some(row) = rows.next().unwrap() {
-        let file_path: String = row.get(0).unwrap();
-        let cover_path: String = row.get(1).unwrap_or_default();
-        let title: String = row.get(2).unwrap();
-        let artist: String = row.get(3).unwrap();
-        let album_title: String = row.get(4).unwrap();
-        let album_artist: String = row.get(5).unwrap();
-        let track_number: u32 = row.get(6).unwrap_or(0);
-        let disc_number: u32 = row.get(7).unwrap_or(0);
-        let duration: u32 = row.get(8).unwrap_or(0);
-        let year: u32 = row.get(9).unwrap_or(0);
-        let genre: String = row.get(10).unwrap();
-
-        let song = json!({
-            "file_path": file_path,
-            "cover_path": cover_path,
-            "title": title,
-            "artist": artist,
-            "album_title": album_title,
-            "album_artist": album_artist,
-            "track_number": track_number,
-            "disc_number": disc_number,
-            "duration": duration,
-            "year": year,
-            "genre": genre,
-        });
-
-        songs_json.push(song);
-    }
-
-    return json!(songs_json).to_string();
+pub fn get_albums_by_artist(artist: String) -> Result<String, String> {
+    query_row_params("SELECT * FROM album WHERE artist = ?1 ORDER BY title", params![artist])
 }
 
 #[tauri::command]
-pub fn get_all_artists() -> String {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    let mut stmt = db.prepare("SELECT DISTINCT artist FROM album ORDER BY artist").unwrap();
-    let mut rows = stmt.query(params![]).unwrap();
-    
-    let mut artists_json = Vec::new();
-    while let Some(row) = rows.next().unwrap() {
-        let artist: String = row.get(0).unwrap();
-        let album_count: u16 = db.query_row("SELECT COUNT(*) FROM album WHERE artist = ?1", params![artist], |row| row.get(0)).unwrap();
+pub fn get_songs_by_album(title: String, artist: String) -> Result<String, String> {
+    query_row_params("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number", params![title, artist])
+}
 
-        let artist = json!({
-            "name": artist,
-            "album_count": album_count,
-        });
-        
-        artists_json.push(artist);
-    }
-
-    return json!(artists_json).to_string();
+#[tauri::command]
+pub fn get_all_artists() -> Result<String, String> {
+    query_row("SELECT * FROM artist ORDER BY name")
 }
 
 #[tauri::command]

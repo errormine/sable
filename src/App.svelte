@@ -37,7 +37,7 @@
                     addToast({
                         message: result,
                         type: 'success',
-                        duration: 3000,
+                        timeout: 3000,
                         dismissable: true
                     });
                 })
@@ -45,7 +45,7 @@
                     addToast({
                         message: e,
                         type: 'error',
-                        duration: 3000,
+                        timeout: 3000,
                         dismissable: true
                     })
                 });

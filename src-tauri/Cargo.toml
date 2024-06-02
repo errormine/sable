@@ -21,6 +21,7 @@ jwalk = "0.8.1"
 audiotags = "0.5.0"
 rodio = { version = "0.18.1", features = ["symphonia-all"] }
 rust-argon2 = "2.1.0"
+hex = "0.4.3"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
