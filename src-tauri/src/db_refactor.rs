@@ -175,35 +175,13 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
 }
 
 #[tauri::command]
-pub fn register_file(file_path: &Path, app: tauri::AppHandle) {
+pub fn register_file(file_path: &Path) -> Result<(), String> {
     let file_path = file_path.to_path_buf();
-    
-    thread::spawn(move || {
-        let metadata = get_metadata(&file_path);
+    let metadata = get_metadata(&file_path).map_err(|e| e.to_string())?;
+    let songs_metadata = vec![metadata];
 
-        match metadata {
-            Ok(metadata) => {
-                let songs_metadata = vec![metadata];
-                commit_to_db(songs_metadata).unwrap();
-                let result = json!({
-                    "message": "File updated successfully",
-                    "type": "success",
-                    "dismissable": true,
-                    "timeout": 3000
-                }).to_string();
-                app.emit_all("register_file_finished", crate::Payload { message: result }).unwrap();
-            },
-            Err(e) => {
-                let result = json!({
-                    "message": e.to_string(),
-                    "type": "error",
-                    "dismissable": true,
-                    "timeout": 5000
-                }).to_string();
-                app.emit_all("register_file_finished", crate::Payload { message: result }).unwrap();
-            }
-        };
-    });
+    commit_to_db(songs_metadata).map_err(|e| e.to_string())?;
+    return Ok(());
 }
 
 #[tauri::command]
