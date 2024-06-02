@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod audio;
-mod db_refactor;
+mod db;
 
 use rusqlite::Connection;
 use std::fs;
@@ -57,14 +57,14 @@ fn init_audio_player() {
             audio::skip_backward,
             audio::set_volume,
             // db_refactor::register_file,
-            db_refactor::register_dir,
-            db_refactor::get_all_albums,
-            db_refactor::get_albums_by_artist,
-            db_refactor::get_songs_by_album,
-            db_refactor::get_all_artists,
-            db_refactor::remove_album,
-            db_refactor::remove_song,
-            db_refactor::update_metadata_song,
+            db::register_dir,
+            db::get_all_albums,
+            db::get_albums_by_artist,
+            db::get_songs_by_album,
+            db::get_all_artists,
+            db::remove_album,
+            db::remove_song,
+            db::update_metadata_song,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
