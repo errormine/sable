@@ -230,7 +230,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
 // }
 
 #[tauri::command]
-pub fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String> {
+pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String> {
     let dir = dir.to_path_buf();
     
     let songs = get_song_count(&dir);
