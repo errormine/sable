@@ -362,6 +362,7 @@ pub fn remove_song(file_path: String) {
 
 #[tauri::command]
 pub fn update_metadata_song(
+    location_on_disk: String,
     file_path: String,
     cover_path: String,
     title: String,
@@ -372,38 +373,33 @@ pub fn update_metadata_song(
     disc_number: u16,
     year: i32,
     genre: String
-) -> String {
-    let tag = Tag::new().read_from_path(&file_path);
+) -> Result<String, String> {
+    let mut tag = Tag::new().read_from_path(&file_path).map_err(|e| e.to_string())?;
+    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
 
-    match tag { 
-        Ok(mut tag) => {
-            tag.set_title(&title);
-            tag.set_artist(&artist);
-            tag.set_album_title(&album_title);
-            tag.set_album_artist(&album_artist);
-            tag.set_track_number(track_number);
-            tag.set_disc_number(disc_number);
-            tag.set_year(year);
-            tag.set_genre(&genre);
-        
-            match tag.write_to_path(&file_path) {
-                Ok(_) => {},
-                Err(e) => {
-                    return String::from(e.to_string());
-                }
-            };
-        },
-        Err(e) => {
-            return String::from(e.to_string());
-        }
-    }
+    tag.set_title(&title);
+    tag.set_artist(&artist);
+    tag.set_album_title(&album_title);
+    tag.set_album_artist(&album_artist);
+    tag.set_track_number(track_number);
+    tag.set_disc_number(disc_number);
+    tag.set_year(year);
+    tag.set_genre(&genre);
 
-    println!("cover_path: {}", cover_path);
+    tag.write_to_path(&file_path).map_err(|e| e.to_string())?;
 
-    if cover_path != "" {
-        // TODO: copy cover to song directory
-    }
-    
-    remove_song(file_path);
-    return String::from("success");
+    // TOOD: Add option to copy cover art to song directory
+
+    conn.execute(
+        "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist)
+        VALUES (?1, ?2, ?3, ?4)",
+        params![location_on_disk, cover_path, album_title, album_artist]
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "UPDATE song SET title = ?1, artist = ?2, album_title = ?3, album_artist = ?4, track_number = ?5, disc_number = ?6, year = ?7, genre = ?8 WHERE file_path = ?9",
+        params![title, artist, album_title, album_artist, track_number, disc_number, year, genre, file_path]
+    ).map_err(|e| e.to_string())?;
+
+    Ok("Song updated".into())
 }

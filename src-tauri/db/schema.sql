@@ -6,13 +6,12 @@ CREATE TABLE IF NOT EXISTS artist (
 );
 
 CREATE TABLE IF NOT EXISTS album (
-    location_on_disk TEXT NOT NULL,
+    location_on_disk TEXT PRIMARY KEY NOT NULL,
     cover_path TEXT,
     title TEXT NOT NULL,
     artist TEXT NOT NULL,
     year INTEGER,
-    genre TEXT,
-    PRIMARY KEY (title, artist)
+    genre TEXT
 );
 
 CREATE TABLE IF NOT EXISTS song (

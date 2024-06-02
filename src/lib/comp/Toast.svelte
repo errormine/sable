@@ -11,6 +11,11 @@
     
     export let type = "error";
     export let dismissible = true;
+
+    function copyToClipboard(button) {
+        const text = button.textContent;
+        navigator.clipboard.writeText(text);
+    }
 </script>
 
 <article class={type} role="alert" transition:fade>
@@ -22,9 +27,9 @@
         <IonIosInformationCircle />
     {/if}
 
-    <section class="text">
+    <button on:click={(e) => copyToClipboard(e.currentTarget)} class="text">
         <slot />
-    </section>
+    </button>
     
     {#if dismissible}
         <IconButton on:click={() => dispatch("dismiss")}>
@@ -61,6 +66,11 @@
     }
 
     .text {
+        color: inherit;
         margin: 0 2rem;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 </style>

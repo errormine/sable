@@ -4,6 +4,7 @@
     import { listen } from '@tauri-apps/api/event';
     import { open } from '@tauri-apps/api/dialog';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import { invokeWithToast } from '../utils';
     import { addToast } from '../stores/notifications';
     import IonIosClose from 'virtual:icons/ion/ios-close';
     import { sec2time } from '../utils';
@@ -33,11 +34,6 @@
         addEventListener('resize', () => {
             // TODO: fix errors when parent node doesn't exist
             updateSize(domNode.parentNode);
-        });
-
-        await listen('register_file_finished', async (event) => {
-            songList = await loadSongs(activeAlbum);
-            addToast(JSON.parse(event.payload.message));
         });
     });
 
@@ -89,7 +85,8 @@
     async function updateSong() {
         let formData = new FormData(songEditDialog.querySelector('form'));
 
-        await invoke('update_metadata_song', {
+        await invokeWithToast('update_metadata_song', {
+            locationOnDisk: activeAlbum.location_on_disk,
             filePath: editingSong.file_path,
             coverPath: formData.get('cover-path'),
             title: formData.get('title'),
@@ -100,15 +97,10 @@
             discNumber: Number(formData.get('disc-number')),
             year: Number(formData.get('year')),
             genre: formData.get('genre')
-        }).then(async (result) => {
-            if (result != "success") {
-                addToast({ message: result, type: "error", timeout: 10000 });
-                return;
-            }
-            await invoke('register_file', { filePath: editingSong.file_path });
         });
 
         songEditDialog.close();
+        songList = await loadSongs(activeAlbum);
     }
 </script>
 
@@ -118,7 +110,7 @@
             <fieldset>
                 <label for="cover-path"><AlbumCover path={editingSong.cover_path}/></label>
                 <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path">
-                <p><em>Setting a new cover doesn't work yet.</em></p>
+                <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
             </fieldset>
 
             <fieldset>
