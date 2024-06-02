@@ -32,7 +32,25 @@
 
         if (directory) {
             loadingSongs = true;
-            invoke('register_dir', { dir: directory.toString() });
+            await invoke('register_dir', { dir: directory.toString() })
+                .then(result => {
+                    addToast({
+                        message: result,
+                        type: 'success',
+                        duration: 3000,
+                        dismissable: true
+                    });
+                })
+                .catch(e => {
+                    addToast({
+                        message: e,
+                        type: 'error',
+                        duration: 3000,
+                        dismissable: true
+                    })
+                });
+            loadingSongs = false;
+            refreshLibrary();
         }
     }
 
@@ -47,12 +65,6 @@
 
         await listen('songs_registered', (event) => {
             songsRegistered = event.payload.message;
-        });
-
-        await listen('register_songs_finished', (event) => {
-            loadingSongs = false;
-            refreshLibrary();
-            addToast(JSON.parse(event.payload.message));
         });
     })
 </script>

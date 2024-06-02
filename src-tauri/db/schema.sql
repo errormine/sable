@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS song (
     disc_number INTEGER DEFAULT 0,
     duration INTEGER DEFAULT 0,
     year INTEGER,
-    genre TEXT,
-    FOREIGN KEY (album_title, album_artist) REFERENCES album(title, artist)
+    genre TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_album_artist ON album (artist);
