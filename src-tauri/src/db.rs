@@ -154,8 +154,6 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
         None => audio::get_duration(&file_path)
     };
 
-
-
     let year = tag.year().unwrap_or(0);
     let genre = tag.genre().unwrap_or_default().to_string();
 
@@ -184,7 +182,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
         tx.execute("INSERT OR IGNORE INTO artist (name) VALUES (?1)", params![&album.artist])?;
 
         tx.execute(
-            "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
+            "INSERT OR IGNORE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![
                 &album.location_on_disk,
@@ -198,7 +196,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
 
         for song in album.songs {
             tx.execute(
-                "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
+                "INSERT OR IGNORE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
                 params![
                     &song.file_path,
