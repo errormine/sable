@@ -16,12 +16,12 @@
     import { onMount, setContext } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
-    import { addToast } from './lib/stores/notifications';
     import ArtistPage from './lib/windows/ArtistPage.svelte';
     import Artists from './lib/windows/Artists.svelte';
     import { refreshLibrary } from './lib/stores/songLibrary';
     import WindowGroup from './lib/comp/WindowGroup.svelte';
     import { setActiveTab } from './lib/stores/windowManager';
+    import { invokeWithToast } from './lib/utils';
 
     let loadingSongs = false;
     let totalSongs = 0;
@@ -32,23 +32,7 @@
 
         if (directory) {
             loadingSongs = true;
-            await invoke('register_dir', { dir: directory.toString() })
-                .then(result => {
-                    addToast({
-                        message: result,
-                        type: 'success',
-                        timeout: 3000,
-                        dismissable: true
-                    });
-                })
-                .catch(e => {
-                    addToast({
-                        message: e,
-                        type: 'error',
-                        timeout: 3000,
-                        dismissable: true
-                    })
-                });
+            await invokeWithToast('register_dir', { dir: directory.toString() });
             loadingSongs = false;
             refreshLibrary();
         }
