@@ -175,68 +175,54 @@ fn commit_to_db(songs: Vec<SongMetadata>) -> Result<(), Box<dyn Error>> {
 }
 
 #[tauri::command]
-pub fn register_file(file_path: &Path) -> Result<(), String> {
+pub fn register_file(file_path: &Path) -> Result<String, String> {
     let file_path = file_path.to_path_buf();
     let metadata = get_metadata(&file_path).map_err(|e| e.to_string())?;
     let songs_metadata = vec![metadata];
 
     commit_to_db(songs_metadata).map_err(|e| e.to_string())?;
-    return Ok(());
+    return Ok("File registered successfully".into());
 }
 
 #[tauri::command]
-pub fn register_dir(dir: &Path, app: tauri::AppHandle) {
+pub fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String> {
     let dir = dir.to_path_buf();
     
-    thread::spawn(move || {
-        let songs = get_song_count(&dir);
-        app.emit_all("total_songs", crate::Payload { message: songs.to_string() }).unwrap();
+    let songs = get_song_count(&dir);
+    app.emit_all("total_songs", crate::Payload { message: songs.to_string() }).unwrap();
 
-        let mut songs_metadata = Vec::new();
-        let mut successful = 0;
-        let mut failed = 0;
+    let mut songs_metadata = Vec::new();
+    let mut successful = 0;
+    let mut failed = 0;
 
-        for entry in WalkDir::new(&dir).sort(true) {
-            let song = entry.unwrap().path();
+    for entry in WalkDir::new(&dir).sort(true) {
+        let Ok(entry) = entry else { continue };
+        let song_path = entry.path();
 
-            if !is_audio_file(&song) {
-                continue;
-            }
+        if !is_audio_file(&song_path) { 
+            continue;
+        }
 
-            if let Ok(metadata) = get_metadata(&song) {
+        match get_metadata(&song_path) {
+            Ok(metadata) => {
                 songs_metadata.push(metadata);
                 successful += 1;
-                app.emit_all("songs_registered", crate::Payload { message: successful.to_string() }).unwrap();
-            } else {
+            },
+            Err(_) => {
                 failed += 1;
-                // TODO: keep track of which files failed to read
-            };
-        };
-
-        if let Err(e) = commit_to_db(songs_metadata) {
-            let result = json!({
-                "message": e.to_string(),
-                "type": "error",
-                "dismissable": true,
-                "timeout": 5000
-            }).to_string();
-            app.emit_all("register_songs_finished", crate::Payload { message: result }).unwrap();
-        };
-
-
-        let mut message = format!("Registered {} songs", successful);
-        if failed > 0 {
-            message += format!(", {} could not be read", failed).as_str();
+                // TODO: keep track of which files failed
+            }
         }
-        let result = json!({
-            "message": message,
-            "type": "success",
-            "dismissable": true,
-            "timeout": 5000
-        }).to_string();
+        app.emit_all("songs_registered", crate::Payload { message: successful.to_string() }).unwrap();
+    };
 
-        app.emit_all("register_songs_finished", crate::Payload { message: result }).unwrap();
-    });
+    commit_to_db(songs_metadata).map_err(|e| e.to_string())?;
+
+    let mut message = format!("Registered {} songs", successful);
+    if failed > 0 {
+        message += format!(", {} could not be read", failed).as_str();
+    }
+    Ok(message.into())
 }
 
 #[tauri::command]
