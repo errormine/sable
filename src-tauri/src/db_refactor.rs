@@ -60,72 +60,65 @@ fn is_audio_file(path: &Path) -> bool {
 fn get_song_count(dir: &Path) -> i32 {
     let mut count = 0;
 
-    for entry in WalkDir::new(dir).sort(true) {
-        if is_audio_file(&entry.unwrap().path()) {
-            count += 1;
+    for entry in WalkDir::new(dir) {
+        match entry {
+            Ok(entry) => {
+                if is_audio_file(&entry.path()) {
+                    count += 1;
+                }
+            },
+            Err(_) => continue
         }
     }
 
     return count;
 }
 
-fn tag_to_string(option: Option<&str>) -> String {
-    match option {
-        Some(value) => value.to_string(),
-        None => String::from("Unknown"),
-    }
-}
-
 fn get_metadata(song: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
-    let tag = Tag::new().read_from_path(&song)?;
+    let file_path = song.clone().to_string_lossy().to_string();
+    let parent_dir = song.parent().ok_or("Failed to get parent directory")?;
     
-    let file_path = song.clone().into_os_string().into_string().unwrap();
-    let parent_dir = song.parent().unwrap().to_str().unwrap();
-
-    let title = tag_to_string(tag.title());
-    let artist = tag_to_string(tag.artist());
-    let album_title = tag_to_string(tag.album_title());
+    let tag = Tag::new().read_from_path(&song)?;
+    let title = tag.title().unwrap_or("Unknown").to_owned();
+    let artist = tag.artist().unwrap_or("Unknown").to_owned();
+    let album_title = tag.album_title().unwrap_or("Unknown").to_owned();
     let album_artist = match tag.album_artist() {
-        Some(album_artist) => String::from(album_artist),
-        None => String::from(&artist)
+        Some(album_artist) => album_artist.to_owned(),
+        None => artist.clone()
     };
 
+    // Find some cover art in the same directory as the song
     let mut cover_path = None;
-    let album_jpg = format!("{}.jpg", album_title.clone()).to_ascii_lowercase();
-    let album_png = format!("{}.png", album_title.clone()).to_ascii_lowercase();
-    let cover_names = [
-        "cover.jpg", "cover.png", 
-        "folder.jpg", "folder.png", 
-        "front.jpg", "front.png", 
-        album_jpg.as_str(), 
-        album_png.as_str()
-    ];
     for entry in WalkDir::new(&parent_dir) {
-        let path = entry.unwrap().path();
+        if let Ok(entry) = entry {
+            if !entry.file_type.is_file() {
+                continue;
+            }
 
-        if path.is_file() {
-            let lowercase = path.file_name().unwrap().to_ascii_lowercase();
-            let name = lowercase.to_str().unwrap();
-            
-            if cover_names.contains(&name) {
-                cover_path = Some(path.into_os_string().into_string().unwrap());
+            let lowercase = entry.file_name().to_ascii_lowercase();
+            let name = lowercase.to_str().unwrap_or_default();
+
+            let cover_keywords = ["cover", "folder", "front", &album_title.to_ascii_lowercase()];
+            if cover_keywords.contains(&name) {
+                cover_path = Some(entry.path().into_os_string().into_string().unwrap());
                 break;
-            };
-        };
+            }
+        }
     };
 
     let track_number = tag.track_number().unwrap_or(0);
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
+        // This is really slow, but most songs don't have the duration tag :(
         Some(d) => d as u64,
         None => audio::get_duration(&file_path)
     };
 
     let year = tag.year().unwrap_or(0);
-    let genre = tag_to_string(tag.genre());
+    let genre = tag.genre().unwrap_or_default().to_string();
 
     return Ok(SongMetadata {
-        parent_dir: parent_dir.to_string(),
+        parent_dir: parent_dir.to_string_lossy().to_string(),
         file_path,
         cover_path,
         title,
