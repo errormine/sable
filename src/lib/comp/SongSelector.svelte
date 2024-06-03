@@ -47,6 +47,7 @@
     }
 
     function playSongAndQueue(song, offset) {
+        selectedSong = song;
         play(song);
         setQueue(songList, offset);
     }
@@ -164,11 +165,11 @@
         </form>
     {/if}
 </PopoutWindow>
-<section bind:this={domNode} class="album-info" class:hidden={!activeAlbum}>
-    <section class="album-info-wrapper">
-        {#if activeAlbum}
+<section bind:this={domNode} class="song-selector" class:hidden={!activeAlbum}>
+    {#if activeAlbum}
+        <section class="album-info-wrapper glass">
             <AlbumCover path={activeAlbum.cover_path} />
-            <section class="song-selector">
+            <section class="songs">
                 <header class="mb-05">
                     <h2>{activeAlbum.title}</h2>
                     <p class="subtitle">{activeAlbum.artist}</p>
@@ -176,7 +177,7 @@
                 <ol class="song-list">
                     {#each songList as song, index}
                         <li class="song-item">
-                            <!-- so long!!!! -->
+                            <!-- TODO: I would like to have the ability to select multiple songs at once for metadata editing -->
                             <button class="song" title={song.title} 
                                 class:active={selectedSong == song}
                                 on:click={() => playSongAndQueue(song, index)}
@@ -189,31 +190,30 @@
                     {/each}
                 </ol>
             </section>
-        {/if}
-    </section>
-    <ContextMenu bind:this={songContextMenu}>
-        <Item on:click={playSelectedSongNext}>Play Next</Item>
-        <Item on:click={addSelectedToQueue}>Add to Queue</Item>
-        <Divider />
-        <Item on:click={openEditDialog}>Edit</Item>
-        <Item on:click={removeSelectedSong}>Remove</Item>
-        <Divider />
-        <Item>Open File Location</Item>
-    </ContextMenu>
+        </section>
+        <ContextMenu bind:this={songContextMenu}>
+            <Item on:click={playSelectedSongNext}>Play Next</Item>
+            <Item on:click={addSelectedToQueue}>Add to Queue</Item>
+            <Divider />
+            <Item on:click={openEditDialog}>Edit</Item>
+            <Item on:click={removeSelectedSong}>Remove</Item>
+            <Divider />
+            <Item>Open File Location</Item>
+        </ContextMenu>
+    {/if}
 </section>
 
 <style>
-    .album-info {
+    .song-selector {
         position: relative;
-        padding: 0 0.5rem;
-        margin-top: 1rem;
-        
+        padding: 0 1rem;
+        margin: 1rem 0;
+
         & .album-info-wrapper {
             display: grid;
             grid-template-columns: 16rem 1fr;
             padding: 1rem;
             gap: 1rem;
-            background: var(--clr-gray-3);
             border-radius: 0.5rem;
         }
     
@@ -224,7 +224,7 @@
 
     .song-list {
         column-count: auto;
-        column-width: 20vw;
+        column-width: 20rem;
         column-gap: 3rem;
     }
     
@@ -237,12 +237,8 @@
         transition: all 200ms;
         width: 100%;
     
-        &:hover {
-            background: var(--clr-gray-5);
-        }
-
         &.active {
-            background: var(--clr-gray-0);
+            background: var(--clr-gray-3);
         }
     
         & .track-number {
