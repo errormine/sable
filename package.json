@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@neodrag/svelte": "^2.0.6",
-    "@tauri-apps/api": "^1.5.6",
+    "@tauri-apps/api": "2.0.0-beta.13",
+    "@tauri-apps/plugin-dialog": "2.0.0-beta.5",
+    "@tauri-apps/plugin-fs": "2.0.0-beta.5",
+    "@tauri-apps/plugin-http": "2.0.0-beta.5",
+    "@tauri-apps/plugin-shell": "2.0.0-beta.6",
     "tauri-plugin-stronghold-api": "github:tauri-apps/tauri-plugin-stronghold#v1",
-    "tauri-settings": "^0.3.5",
     "unplugin-icons": "^0.19.0"
   },
   "devDependencies": {
@@ -21,7 +24,7 @@
     "@iconify-json/logos": "^1.1.42",
     "@iconify-json/solar": "^1.1.9",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
-    "@tauri-apps/cli": "^1.5.14",
+    "@tauri-apps/cli": "2.0.0-beta.20",
     "svelte": "^4.2.17",
     "svelte-contextmenu": "^1.0.2",
     "vite": "^5.2.12"

@@ -1,5 +1,5 @@
 <script>
-    import { convertFileSrc } from "@tauri-apps/api/tauri";
+    import { convertFileSrc } from "@tauri-apps/api/core";
 
     export let path = "";
     export let rounded = true;

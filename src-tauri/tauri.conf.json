@@ -2,42 +2,33 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
-  "package": {
-    "productName": "sable",
-    "version": "0.1.0"
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
   },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "http": {
-        "request": true,
+  "productName": "sable",
+  "version": "0.1.0",
+  "identifier": "com.errormine.sable",
+  "plugins": {},
+  "app": {
+    "security": {
+      "assetProtocol": {
         "scope": [
-          "https://www.last.fm/*", 
-          "https://api.deezer.com/*", 
-          "https://e-cdns-images.dzcdn.net/images/cover/*"
-        ]
+          "**"
+        ],
+        "enable": true
       },
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "dialog": {
-        "open": true
-      },
-      "fs": {
-        "all": true,
-        "scope": ["**", "**/*", "/**/*"]
-      },
-      "path": {
-        "all": true
-      },
-      "protocol": {
-        "asset": true,
-        "assetScope": ["**"]
-      }
+      "csp": null
     },
     "windows": [
       {
@@ -45,21 +36,6 @@
         "width": 1400,
         "height": 800
       }
-    ],
-    "security": {
-      "csp": null
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "com.errormine.sable",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    }
+    ]
   }
 }

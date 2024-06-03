@@ -1,4 +1,8 @@
-use std::{collections::HashMap, error::Error, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    error::Error,
+    path::{Path, PathBuf},
+};
 
 use audiotags::Tag;
 use jwalk::WalkDir;
@@ -16,7 +20,7 @@ struct AlbumMetadata {
     artist: String,
     year: i32,
     genre: String,
-    songs: Vec<SongMetadata>
+    songs: Vec<SongMetadata>,
 }
 
 impl Clone for AlbumMetadata {
@@ -28,7 +32,7 @@ impl Clone for AlbumMetadata {
             artist: self.artist.clone(),
             year: self.year,
             genre: self.genre.clone(),
-            songs: self.songs.clone()
+            songs: self.songs.clone(),
         }
     }
 }
@@ -45,7 +49,7 @@ struct SongMetadata {
     disc_number: u16,
     duration: u64,
     year: i32,
-    genre: String
+    genre: String,
 }
 
 impl Clone for SongMetadata {
@@ -61,7 +65,7 @@ impl Clone for SongMetadata {
             disc_number: self.disc_number,
             duration: self.duration,
             year: self.year,
-            genre: self.genre.clone()
+            genre: self.genre.clone(),
         }
     }
 }
@@ -75,7 +79,7 @@ fn is_audio_file(path: &Path) -> bool {
         .and_then(|ext| ext.to_str())
         .map(|ext| match ext {
             "mp3" | "flac" | "m4a" | "ogg" | "wav" => true,
-            _ => false
+            _ => false,
         })
         .unwrap_or_default()
 }
@@ -89,8 +93,8 @@ fn get_song_count(dir: &Path) -> i32 {
                 if is_audio_file(&entry.path()) {
                     count += 1;
                 }
-            },
-            Err(_) => continue
+            }
+            Err(_) => continue,
         }
     }
 
@@ -112,14 +116,23 @@ fn find_cover_art(dir: &Path, album_title: &str) -> Option<String> {
             }
         }
 
-        let lowercase = entry.path().file_stem().unwrap_or_default().to_ascii_lowercase();
+        let lowercase = entry
+            .path()
+            .file_stem()
+            .unwrap_or_default()
+            .to_ascii_lowercase();
         let name = lowercase.to_str().unwrap_or_default();
-        let cover_keywords = ["cover", "folder", "front", &album_title.to_ascii_lowercase()];
+        let cover_keywords = [
+            "cover",
+            "folder",
+            "front",
+            &album_title.to_ascii_lowercase(),
+        ];
 
         if cover_keywords.contains(&name) {
             return Some(entry.path().to_string_lossy().to_string());
         }
-    };
+    }
 
     return None;
 }
@@ -127,14 +140,14 @@ fn find_cover_art(dir: &Path, album_title: &str) -> Option<String> {
 fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let file_path = path.clone().to_string_lossy().to_string();
     let parent_dir = path.parent().ok_or("Failed to get parent directory")?;
-    
+
     let tag = Tag::new().read_from_path(&path)?;
     let title = tag.title().unwrap_or("Unknown").to_owned();
     let artist = tag.artist().unwrap_or("Unknown").to_owned();
     let album_title = tag.album_title().unwrap_or("Unknown").to_owned();
     let album_artist = match tag.album_artist() {
         Some(album_artist) => album_artist.to_owned(),
-        None => artist.clone()
+        None => artist.clone(),
     };
 
     let track_number = tag.track_number().unwrap_or(0);
@@ -150,8 +163,8 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
             } else {
                 seconds
             }
-        },
-        None => audio::get_duration(&file_path)
+        }
+        None => audio::get_duration(&file_path),
     };
 
     let year = tag.year().unwrap_or(0);
@@ -168,7 +181,7 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
         disc_number,
         duration,
         year,
-        genre
+        genre,
     });
 }
 
@@ -179,7 +192,10 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
     for (_, album) in albums {
         let cover_path = album.cover_path.clone().unwrap_or_default();
 
-        tx.execute("INSERT OR IGNORE INTO artist (name) VALUES (?1)", params![&album.artist])?;
+        tx.execute(
+            "INSERT OR IGNORE INTO artist (name) VALUES (?1)",
+            params![&album.artist],
+        )?;
 
         tx.execute(
             "INSERT OR IGNORE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
@@ -213,7 +229,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
                 ]
             )?;
         }
-    };
+    }
 
     tx.commit()?;
     return Ok(());
@@ -222,9 +238,15 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Er
 #[tauri::command]
 pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, String> {
     let dir = dir.to_path_buf();
-    
+
     let songs = get_song_count(&dir);
-    app.emit_all("total_songs", crate::Payload { message: songs.to_string() }).unwrap();
+    app.emit(
+        "total_songs",
+        crate::Payload {
+            message: songs.to_string(),
+        },
+    )
+    .unwrap();
 
     let mut albums = HashMap::new();
     let mut current_album = AlbumMetadata {
@@ -234,7 +256,7 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
         artist: String::new(),
         year: 0,
         genre: String::new(),
-        songs: Vec::new()
+        songs: Vec::new(),
     };
     let mut successful = 0;
     let mut failed = 0;
@@ -243,13 +265,15 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
         let Ok(entry) = entry else { continue };
         let song_path = entry.path();
 
-        if !is_audio_file(&song_path) { 
+        if !is_audio_file(&song_path) {
             continue;
         }
 
         match get_song_metadata(&song_path) {
             Ok(metadata) => {
-                if current_album.title != metadata.album_title || current_album.artist != metadata.album_artist {
+                if current_album.title != metadata.album_title
+                    || current_album.artist != metadata.album_artist
+                {
                     if !current_album.songs.is_empty() {
                         albums.insert(current_album.title.clone(), current_album.clone());
                     }
@@ -265,19 +289,25 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
                         artist: metadata.album_artist.clone(),
                         year: metadata.year.clone(),
                         genre: metadata.genre.clone(),
-                        songs: Vec::new()
+                        songs: Vec::new(),
                     };
                 }
                 current_album.songs.push(metadata);
                 successful += 1;
-            },
+            }
             Err(_) => {
                 failed += 1;
                 // TODO: keep track of which files failed
             }
         }
-        app.emit_all("songs_registered", crate::Payload { message: successful.to_string() }).unwrap();
-    };
+        app.emit(
+            "songs_registered",
+            crate::Payload {
+                message: successful.to_string(),
+            },
+        )
+        .unwrap();
+    }
 
     commit_to_db(albums).map_err(|e| e.to_string())?;
 
@@ -288,7 +318,11 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
     Ok(message.into())
 }
 
-fn query_to_json<T: Params>(conn: &Connection, query: &str, params: T) -> Result<String, Box<dyn Error>> {
+fn query_to_json<T: Params>(
+    conn: &Connection,
+    query: &str,
+    params: T,
+) -> Result<String, Box<dyn Error>> {
     let mut stmt = conn.prepare(query)?;
     let cached_stmt = conn.prepare_cached(query)?;
     let mut results = Vec::new();
@@ -300,8 +334,12 @@ fn query_to_json<T: Params>(conn: &Connection, query: &str, params: T) -> Result
             let value: Value = match row.get_ref(i)? {
                 rusqlite::types::ValueRef::Null => Value::Null,
                 rusqlite::types::ValueRef::Integer(i) => Value::Number(i.into()),
-                rusqlite::types::ValueRef::Real(r) => Value::Number(serde_json::Number::from_f64(r).unwrap()),
-                rusqlite::types::ValueRef::Text(t) => Value::String(String::from_utf8(t.to_vec()).unwrap()),
+                rusqlite::types::ValueRef::Real(r) => {
+                    Value::Number(serde_json::Number::from_f64(r).unwrap())
+                }
+                rusqlite::types::ValueRef::Text(t) => {
+                    Value::String(String::from_utf8(t.to_vec()).unwrap())
+                }
                 rusqlite::types::ValueRef::Blob(b) => Value::String(hex::encode(b)),
             };
             row_map.insert(col_name.to_string(), value);
@@ -334,7 +372,10 @@ pub fn get_all_albums() -> Result<String, String> {
 
 #[tauri::command]
 pub fn get_albums_by_artist(artist: String) -> Result<String, String> {
-    query_row_params("SELECT * FROM album WHERE artist = ?1 ORDER BY title", params![artist])
+    query_row_params(
+        "SELECT * FROM album WHERE artist = ?1 ORDER BY title",
+        params![artist],
+    )
 }
 
 #[tauri::command]
@@ -349,20 +390,31 @@ pub fn get_songs_by_album(title: String, artist: String) -> Result<String, Strin
 
 #[tauri::command]
 pub fn get_all_artists() -> Result<String, String> {
-    query_row("SELECT artist AS name, COUNT(*) AS album_count FROM album GROUP BY artist ORDER BY artist")
+    query_row(
+        "SELECT artist AS name, COUNT(*) AS album_count FROM album GROUP BY artist ORDER BY artist",
+    )
 }
 
 #[tauri::command]
 pub fn remove_album(album: String, artist: String) {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    db.execute("DELETE FROM song WHERE album_title = ?1 AND album_artist = ?2", params![album, artist]).unwrap();
-    db.execute("DELETE FROM album WHERE title = ?1 AND artist = ?2", params![album, artist]).unwrap();
+    db.execute(
+        "DELETE FROM song WHERE album_title = ?1 AND album_artist = ?2",
+        params![album, artist],
+    )
+    .unwrap();
+    db.execute(
+        "DELETE FROM album WHERE title = ?1 AND artist = ?2",
+        params![album, artist],
+    )
+    .unwrap();
 }
 
 #[tauri::command]
 pub fn remove_song(file_path: String) {
     let db = Connection::open("D:/Documents/music.db").unwrap();
-    db.execute("DELETE FROM song WHERE file_path = ?1", params![file_path]).unwrap();
+    db.execute("DELETE FROM song WHERE file_path = ?1", params![file_path])
+        .unwrap();
 }
 
 #[tauri::command]
@@ -377,9 +429,11 @@ pub fn update_metadata_song(
     track_number: u16,
     disc_number: u16,
     year: i32,
-    genre: String
+    genre: String,
 ) -> Result<String, String> {
-    let mut tag = Tag::new().read_from_path(&file_path).map_err(|e| e.to_string())?;
+    let mut tag = Tag::new()
+        .read_from_path(&file_path)
+        .map_err(|e| e.to_string())?;
     let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
 
     tag.set_title(&title);
@@ -397,8 +451,9 @@ pub fn update_metadata_song(
     conn.execute(
         "REPLACE INTO album (location_on_disk, cover_path, title, artist)
         VALUES (?1, ?2, ?3, ?4)",
-        params![location_on_disk, cover_path, album_title, album_artist]
-    ).map_err(|e| e.to_string())?;
+        params![location_on_disk, cover_path, album_title, album_artist],
+    )
+    .map_err(|e| e.to_string())?;
 
     conn.execute(
         "UPDATE song SET cover_path = ?2, title = ?3, artist = ?4, album_title = ?5, album_artist = ?6, track_number = ?7, disc_number = ?8, year = ?9, genre = ?10

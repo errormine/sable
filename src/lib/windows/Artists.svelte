@@ -1,5 +1,5 @@
 <script>
-    import { invoke } from "@tauri-apps/api";
+    import { invoke } from "@tauri-apps/api/core";
     import { onMount } from "svelte";
     import Window from "../comp/Window.svelte";
     import { activeArtist, artists } from "../stores/songLibrary";

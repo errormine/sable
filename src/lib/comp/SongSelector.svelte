@@ -1,6 +1,6 @@
 <svelte:options accessors />
 <script>
-    import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+    import { convertFileSrc, invoke } from '@tauri-apps/api/core';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { invokeWithToast } from '../utils';
     import IonIosClose from 'virtual:icons/ion/ios-close';

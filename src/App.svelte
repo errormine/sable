@@ -5,7 +5,7 @@
 </script>
 
 <script>
-    import { open } from '@tauri-apps/api/dialog';
+    import { open } from '@tauri-apps/plugin-dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
     import Albums from './lib/windows/Albums.svelte';

@@ -1,5 +1,5 @@
 <script>
-    import { invoke } from '@tauri-apps/api/tauri';
+    import { invoke } from '@tauri-apps/api/core';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
     import { loadSongs, openAlbum, refreshLibrary, songList } from '../stores/songLibrary';

@@ -1,7 +1,6 @@
 <script>
     import { sec2time } from '../utils';
     import { onMount } from 'svelte';
-    import { settings, settingsManager } from '../stores/userConfig';
     import { addToast } from '../stores/notifications';
     import IonIosPlay from 'virtual:icons/ion/ios-play';
     import IonIosPause from 'virtual:icons/ion/ios-pause';
@@ -13,9 +12,8 @@
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
     import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, songProgress, stopPlayback, togglePlayback } from '../stores/audioPlayer';
-    import { invoke } from '@tauri-apps/api/tauri';
+    import { invoke } from '@tauri-apps/api/core';
 
-    let volume = settings.audio_player.volume;
     let progressBar;
     let volumeSlider;
     let userSeeking = false;
@@ -30,7 +28,6 @@
     });
     
     onMount(async () => {
-        await invoke('set_volume', { volume });
         if (!progressBar) return;
         
         progressBar.input.addEventListener('input', () => {
@@ -66,8 +63,6 @@
         volumeSlider.input.addEventListener('change', async (event) => {
             let newVolume = event.target.value;
             if (!newVolume) return;
-            settingsManager.setCache('audio_player.volume', Number(newVolume));
-            await settingsManager.syncCache();
         });
     });
 </script>
@@ -105,7 +100,7 @@
         <IconButton>
             <IonVolumeHigh/>
         </IconButton>
-        <Slider bind:this={volumeSlider} width="6rem" color="var(--clr-gray-9)" name="volume-slider" id="volume-slider" min={0} max={100} value={volume} />
+        <Slider bind:this={volumeSlider} width="6rem" color="var(--clr-gray-9)" name="volume-slider" id="volume-slider" min={0} max={100} value={80} />
     </section>
 </footer>
 

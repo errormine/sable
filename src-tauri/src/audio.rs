@@ -1,6 +1,6 @@
+use rodio::Source;
 use std::fs::File;
 use std::io::BufReader;
-use rodio::Source;
 
 use crate::MusicPlayer;
 
@@ -51,10 +51,10 @@ pub fn stop(state: tauri::State<MusicPlayer>) {
 pub fn seek(position: String, state: tauri::State<MusicPlayer>) -> String {
     let position: u64 = position.parse().unwrap();
     let duration = std::time::Duration::from_secs(position);
-    
+
     match state.sink.try_seek(duration) {
         Ok(_) => String::from("success"),
-        Err(e) => format!("{}", e.to_string())
+        Err(e) => format!("{}", e.to_string()),
     }
 }
 

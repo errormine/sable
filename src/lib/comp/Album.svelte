@@ -1,6 +1,6 @@
 <script>
     import { path } from '@tauri-apps/api';
-    import { convertFileSrc } from '@tauri-apps/api/tauri';
+    import { convertFileSrc } from '@tauri-apps/api/core';
     import AlbumCover from './AlbumCover.svelte';
 
     export let album;

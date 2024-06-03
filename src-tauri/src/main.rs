@@ -14,7 +14,7 @@ pub struct Payload {
 }
 
 struct MusicPlayer {
-    sink: rodio::Sink
+    sink: rodio::Sink,
 }
 
 fn main() {
@@ -27,23 +27,20 @@ fn init_database() {
     let db = Connection::open("D:/Documents/music.db").unwrap();
     let schema = fs::read_to_string("db/schema.sql").unwrap();
 
-    db.execute_batch(schema.as_str()).expect("Failed to create database");
+    db.execute_batch(schema.as_str())
+        .expect("Failed to create database");
 }
 
 fn init_audio_player() {
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
 
     tauri::Builder::default()
-        .setup(|app| {
-            // https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/stronghold
-            let salt_path = app.path_resolver().app_local_data_dir().expect("Failed to get app data dir").join("salt.txt");
-
-            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
-
-            Ok(())
-        })
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
         .manage(MusicPlayer {
-            sink: rodio::Sink::try_new(&stream_handle).unwrap()
+            sink: rodio::Sink::try_new(&stream_handle).unwrap(),
         })
         .invoke_handler(tauri::generate_handler![
             write_file,

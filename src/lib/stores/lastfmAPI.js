@@ -1,6 +1,5 @@
-import { fs, http } from "@tauri-apps/api";
-import { ResponseType } from "@tauri-apps/api/http";
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
+import { fetch } from "@tauri-apps/plugin-http";
 
 const ApiCredentials = {
     apiKey: import.meta.env.VITE_LASTFM_API_KEY,
@@ -8,10 +7,9 @@ const ApiCredentials = {
 };
 
 async function download(url, dest) {
-    const client = await http.getClient();
-    const response = await client.get(url, { responseType: ResponseType.Binary });
+    const response = await fetch(url);
 
-    await invoke("write_file", { path: dest, contents: response.data });
+    await invoke("write_file", { path: dest, contents: response.json() });
 }
 
 export async function retrieveFromCache(name) {
@@ -43,14 +41,12 @@ export async function getArtistInfo(name) {
 async function getArtistImageLastFm(artist) {
     if (!artist || !artist.url) return null;
     
-    let lastFmImage = http.fetch(artist.url, {
-            method: 'GET',
-            responseType: ResponseType.Text,
-            timeout: 10,
-        })
+    let lastFmImage = fetch(artist.url)
         .then(res => {
+            return res.text();
+        }).then(data => {
             let parser = new DOMParser();
-            let doc = parser.parseFromString(res.data, 'text/html');
+            let doc = parser.parseFromString(data, 'text/html');
             let images = doc.querySelectorAll('.image-list-item');
             if (images.length === 0) {
                 return null;
@@ -72,9 +68,12 @@ async function getArtistImageLastFm(artist) {
 }
 
 async function getArtistImageDeezer(artist) {
-    return http.fetch(`https://api.deezer.com/search/artist?q="${artist.name}"&limit=1&strict=on`)
+    return fetch(`https://api.deezer.com/search/artist?q="${artist.name}"&limit=1&strict=on`)
         .then(res => {
-            return res.data.data[0].picture_medium;
+            return res.json();
+        })
+        .then(data => {
+            return data.data[0].picture_xl;
         });
 }
 
@@ -104,16 +103,16 @@ export async function getArtistTags(name) {
 }
 
 export async function getAlbumId(title, artist) {
-    return http.fetch(`https://api.deezer.com/search/album?q=artist:"${artist}" album:"${title}"&limit=1`)
-        .then(res => res.data)
+    return fetch(`https://api.deezer.com/search/album?q=artist:"${artist}" album:"${title}"&limit=1`)
+        .then(res => res.json())
         .then(data => {
             return data.data[0].id;
         });
 }
 
 export async function getAlbumDeezer(id) {
-    return http.fetch(`https://api.deezer.com/album/${id}`)
-        .then(res => res.data)
+    return fetch(`https://api.deezer.com/album/${id}`)
+        .then(res => res.json())
         .then(data => {
             return data;
         });
