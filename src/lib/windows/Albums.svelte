@@ -5,5 +5,5 @@
 </script>
 
 <Window title="Albums">
-    <AlbumSelector albums={$albums} />
+    <AlbumSelector albumList={$albums} />
 </Window>

@@ -1,22 +1,18 @@
 <svelte:options accessors />
 <script>
     import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-    import { listen } from '@tauri-apps/api/event';
-    import { open } from '@tauri-apps/api/dialog';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { invokeWithToast } from '../utils';
-    import { addToast } from '../stores/notifications';
     import IonIosClose from 'virtual:icons/ion/ios-close';
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
-    import { loadSongs } from '../stores/songLibrary';
-    import PopoutWindow from './PopoutWindow.svelte';
     import AlbumCover from './AlbumCover.svelte';
     import IconButton from './IconButton.svelte';
+    import { openEditDialog, selectedAlbum, selectedSongs } from '../stores/tagEditor';
+    import { loadSongs } from '../stores/songLibrary';
 
     export let domNode = null;
-    export let activeAlbum;
     export let songList = [];
 
     let owner = null;
@@ -37,13 +33,14 @@
         });
     });
 
-    let songEditDialog;
     let songContextMenu;
-    let selectedSong;
 
-    function showSongMenu(e, song) {
-        songContextMenu.show(e);
-        selectedSong = song;
+    function select(e, song) {
+        if (e.ctrlKey && !$selectedSongs.includes(song)) {
+            $selectedSongs = [...$selectedSongs, song];
+        } else {
+            $selectedSongs = [song];
+        }
     }
 
     function playSongAndQueue(song, offset) {
@@ -51,136 +48,39 @@
         setQueue(songList, offset);
     }
 
-    function playSelectedSongNext() {
-        insertIntoQueue(selectedSong);
+    function playSelectedNext() {
+        insertIntoQueue($selectedSongs);
     }
 
     function addSelectedToQueue() {
-        addToQueue([selectedSong]);
+        addToQueue($selectedSongs);
     }
 
-    async function removeSelectedSong() {
-        await invoke('remove_song', selectedSong);
-    }
-
-    // TODO: Tag editing should become a generic thing with support for multiple songs, albums, etc.
-    function openEditDialog() {
-        songEditDialog.showModal();
-    }
-
-    function closeEditDialog() {
-        selectedSong = null;
-        songEditDialog.close();
-    }
-
-    async function getNewCover() {
-        const coverPath = await open({
-            filters: [{ name: 'Images', extensions: ['jpg', 'png'] }],
-            multiple: false
-        });
-
-        if (coverPath) {
-            songEditDialog.querySelector('#cover-path').value = coverPath;
-            selectedSong.cover_path = coverPath;
+    async function removeSelected() {
+        for (let song of $selectedSongs) {
+            await invoke('remove_song', song);
         }
-    }
-
-    async function updateSong() {
-        let formData = new FormData(songEditDialog.querySelector('form'));
-
-        await invokeWithToast('update_metadata_song', {
-            locationOnDisk: activeAlbum.location_on_disk,
-            filePath: selectedSong.file_path,
-            coverPath: formData.get('cover-path'),
-            title: formData.get('title'),
-            artist: formData.get('artist'),
-            albumTitle: formData.get('album-title'),
-            albumArtist: formData.get('album-artist'),
-            trackNumber: Number(formData.get('track-number')),
-            discNumber: Number(formData.get('disc-number')),
-            year: Number(formData.get('year')),
-            genre: formData.get('genre')
-        });
-
-        closeEditDialog();
-        songList = await loadSongs(activeAlbum);
+        songList = await loadSongs($selectedAlbum);
     }
 </script>
 
-<PopoutWindow bind:dialog={songEditDialog} title={selectedSong ? selectedSong.title : ""} onClose={closeEditDialog}>
-    {#if selectedSong}
-        <form class="item-edit-form">
-            <fieldset>
-                <label for="cover-path"><AlbumCover path={selectedSong.cover_path}/></label>
-                <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path" value={selectedSong.cover_path}>
-                <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
-            </fieldset>
-
-            <fieldset>
-                <label for="title">
-                    <span>Title</span>
-                    <input type="text" id="title" name="title" value={selectedSong.title}>
-                </label>
-        
-                <label for="artist">
-                    <span>Artist</span>
-                    <input type="text" id="artist" name="artist" value={selectedSong.artist}>
-                </label>
-        
-                <label for="album-title">
-                    <span>Album Title</span>
-                    <input type="text" id="album-title" name="album-title" value={selectedSong.album_title}>
-                </label>
-        
-                <label for="album-artist">
-                    <span>Album Artist</span>
-                    <input type="text" id="album-artist" name="album-artist" value={selectedSong.album_artist}>
-                </label>
-        
-                <label for="track-number">
-                    <span>Track Number</span>
-                    <input type="number" id="track-number" name="track-number" value={selectedSong.track_number}>
-                </label>
-        
-                <label for="disc-number">
-                    <span>Disc Number</span>
-                    <input type="number" id="disc-number" name="disc-number" value={selectedSong.disc_number}>
-                </label>
-        
-                <label for="year">
-                    <span>Year</span>
-                    <input type="number" id="year" name="year" value={selectedSong.year}>
-                </label>
-        
-                <label for="genre">
-                    <span>Genre</span>
-                    <input type="text" id="genre" name="genre" value={selectedSong.genre}>
-                </label>
-            </fieldset>
-            
-            <fieldset class="footer">
-                <button type="button" on:click={updateSong}>Save</button>
-            </fieldset>
-        </form>
-    {/if}
-</PopoutWindow>
-<section bind:this={domNode} class="song-selector" class:hidden={!activeAlbum}>
-    {#if activeAlbum}
+<section bind:this={domNode} class="song-selector" class:hidden={!$selectedAlbum}>
+    {#if $selectedAlbum}
         <section class="album-info-wrapper glass">
-            <AlbumCover path={activeAlbum.cover_path} />
+            <AlbumCover path={$selectedAlbum.cover_path} />
             <section class="songs">
                 <header class="mb-05">
-                    <h2>{activeAlbum.title}</h2>
-                    <p class="subtitle">{activeAlbum.artist}</p>
+                    <h2>{$selectedAlbum.title}</h2>
+                    <p class="subtitle">{$selectedAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
                     {#each songList as song, index}
                         <li class="song-item">
-                            <!-- TODO: I would like to have the ability to select multiple songs at once for metadata editing -->
                             <button class="song" title={song.title} 
-                                class:active={$currentSong == song || selectedSong == song}
-                                on:click={() => playSongAndQueue(song, index)}
-                                on:contextmenu={(e) => showSongMenu(e, song)}>
+                                class:active={$selectedSongs.includes(song)}
+                                on:click={(e) => select(e, song)}
+                                on:dblclick={() => playSongAndQueue(song, index)}
+                                on:contextmenu={(e) => songContextMenu.show(e)}>
                                 <span class="track-number">{song.track_number}</span>
                                 <p class="song-title no-wrap">{song.title}</p>
                                 <span class="duration">{sec2time(song.duration)}</span>
@@ -191,11 +91,11 @@
             </section>
         </section>
         <ContextMenu bind:this={songContextMenu}>
-            <Item on:click={playSelectedSongNext}>Play Next</Item>
+            <Item on:click={playSelectedNext}>Play Next</Item>
             <Item on:click={addSelectedToQueue}>Add to Queue</Item>
             <Divider />
             <Item on:click={openEditDialog}>Edit</Item>
-            <Item on:click={removeSelectedSong}>Remove</Item>
+            <Item on:click={removeSelected}>Remove</Item>
             <Divider />
             <Item>Open File Location</Item>
         </ContextMenu>

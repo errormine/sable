@@ -1,35 +1,31 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri';
-    import { open } from '@tauri-apps/api/dialog';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
-    import { setQueue, addToQueue, attemptPlayNext, currentSong, beginPlayBack, togglePlayback } from '../stores/audioPlayer';
+    import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
     import { loadSongs, refreshLibrary } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
-    import { downloadCoverImage, getAlbumImage } from '../stores/lastfmAPI';
-    import PopoutWindow from './PopoutWindow.svelte';
-    import AlbumCover from './AlbumCover.svelte';
-    import { invokeWithToast } from '../utils';
+    import { downloadCoverImage } from '../stores/lastfmAPI';
+    import { selectedAlbum } from '../stores/tagEditor';
 
-    export let albums;
+    export let albumList;
 
-    $: albums, clearActiveAlbum();
+    $: albumList, clearSelectedAlbum();
 
-    function clearActiveAlbum() {
-        activeAlbum = null;
+    function clearSelectedAlbum() {
+        $selectedAlbum = null;
         songList = [];
     }
 
-    let activeAlbum;
     let albumSelector;
     let songSelector;
     let songList;
 
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
-        if (activeAlbum != album) {
+        if ($selectedAlbum != album) {
             songList = await loadSongs(album);
-            activeAlbum = album;
+            $selectedAlbum = album;
             
             // Show song selector
             let albumListItem = target.parentNode;
@@ -38,7 +34,7 @@
         } else {
             // Ignore double clicks
             if (e.detail > 1) return;
-            activeAlbum = null;
+            $selectedAlbum = null;
             songList = [];
         }
     }
@@ -49,40 +45,39 @@
     }
 
     let albumContextMenu;
-    let selectedAlbum;
     
     function showAlbumContextMenu(e, album) {
         albumContextMenu.show(e);
-        selectedAlbum = album;
+        $selectedAlbum = album;
     }
 
     async function removeSelectedAlbum() {
-        await invoke('remove_album', { album: selectedAlbum.title, artist: selectedAlbum.artist });
+        await invoke('remove_album', { album: $selectedAlbum.title, artist: $selectedAlbum.artist });
         await refreshLibrary();
     }
 
     async function playSelectedAlbumNext() {
         // TODO: Make this just add the album after the current song
-        setQueue(await loadSongs(selectedAlbum));
+        setQueue(await loadSongs($selectedAlbum));
         if ($currentSong.title == '') {
             attemptPlayNext();
         }
     }
 
     async function addSelectedToQueue() {
-        addToQueue(await loadSongs(selectedAlbum));
+        addToQueue(await loadSongs($selectedAlbum));
     }
 
     async function downloadSelectedAlbumCover() {
         await downloadCoverImage(selectedAlbum);
-        await invoke('register_dir', { dir: selectedAlbum.location_on_disk });
+        await invoke('register_dir', { dir: $selectedAlbum.location_on_disk });
     }
 </script>
 
 <section bind:this={albumSelector} class="album-selector">
-    {#if albums}
+    {#if albumList}
         <ul>
-            {#each albums as album}
+            {#each albumList as album}
                 <li class="album">
                     <Album 
                         on:click={(e) => displayAlbumDetails(e, album)} 
@@ -95,7 +90,7 @@
     {:else}
         <p>No albums found</p>
     {/if}
-    <SongSelector bind:this={songSelector} {activeAlbum} {songList} />
+    <SongSelector bind:this={songSelector} {songList} />
 </section>
 <ContextMenu bind:this={albumContextMenu}>
     <Item on:click={playSelectedAlbumNext}>Play Next</Item>

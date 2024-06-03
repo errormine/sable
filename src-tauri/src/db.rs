@@ -389,16 +389,21 @@ pub fn update_metadata_song(
     tag.write_to_path(&file_path).map_err(|e| e.to_string())?;
 
     // TOOD: Add option to copy cover art to song directory
+    conn.execute(
+        "DELETE FROM album WHERE title = ?1 AND artist = ?2",
+        params![album_title, album_artist]
+    ).map_err(|e| e.to_string())?;
 
     conn.execute(
-        "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist)
+        "INSERT INTO album (location_on_disk, cover_path, title, artist)
         VALUES (?1, ?2, ?3, ?4)",
         params![location_on_disk, cover_path, album_title, album_artist]
     ).map_err(|e| e.to_string())?;
 
     conn.execute(
-        "UPDATE song SET title = ?1, artist = ?2, album_title = ?3, album_artist = ?4, track_number = ?5, disc_number = ?6, year = ?7, genre = ?8 WHERE file_path = ?9",
-        params![title, artist, album_title, album_artist, track_number, disc_number, year, genre, file_path]
+        "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, year, genre)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        params![file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, year, genre]
     ).map_err(|e| e.to_string())?;
 
     Ok("Song updated".into())

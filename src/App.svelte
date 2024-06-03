@@ -5,7 +5,6 @@
 </script>
 
 <script>
-    import { invoke } from '@tauri-apps/api/tauri';
     import { open } from '@tauri-apps/api/dialog';
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
@@ -21,6 +20,7 @@
     import { refreshLibrary } from './lib/stores/songLibrary';
     import WindowGroup from './lib/comp/WindowGroup.svelte';
     import { setActiveTab } from './lib/stores/windowManager';
+    import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
 
     let loadingSongs = false;
@@ -54,6 +54,7 @@
 </script>
 
 <Toasts />
+<TagEditor />
 
 <header id="menu-bar">
     {#if loadingSongs}

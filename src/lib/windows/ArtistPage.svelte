@@ -57,7 +57,7 @@
             </header>
             <section class="content">
                 {#if activeTab == 'albums' && albums}
-                    <AlbumSelector {albums} />
+                    <AlbumSelector albumList={albums} />
                 {/if}
                 {#if activeTab == 'about'}
                     <section class="biography">
