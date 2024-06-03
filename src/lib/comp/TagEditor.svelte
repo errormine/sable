@@ -1,7 +1,7 @@
 <script>
     import AlbumCover from "./AlbumCover.svelte";
     import PopoutWindow from "./PopoutWindow.svelte";
-    import { closeEditDialog, commitChanges, coverPath, editDialog, getNewCover, selectedSongs } from "../stores/tagEditor";
+    import { closeEditDialog, commitChanges, coverPath, editDialog, editInProgress, editProgress, editTotal, getNewCover, selectedSongs } from "../stores/tagEditor";
 
     export let windowTitle = "Editing tags";
 </script>
@@ -66,7 +66,11 @@
             </fieldset>
             
             <fieldset class="footer">
-                <button type="button" on:click={commitChanges}>Save</button>
+                {#if $editInProgress}
+                    <progress max={$editTotal} value={$editProgress}></progress>
+                {:else}
+                    <button type="button" on:click={commitChanges}>Save</button>
+                {/if}
             </fieldset>
         </form>
     {/if}

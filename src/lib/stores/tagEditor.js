@@ -3,7 +3,7 @@ import { open } from "@tauri-apps/api/dialog";
 import { invokeWithToast } from '../utils';
 import { invoke } from '@tauri-apps/api/tauri';
 import { addToast } from './notifications';
-import { refreshSongList } from './songLibrary';
+import { loadSongs, refreshLibrary, refreshSongList } from './songLibrary';
 
 export const editDialog = writable(null);
 export const selectedAlbum = writable(null);
@@ -17,6 +17,12 @@ export function openEditDialog() {
 
     coverPath.set(get(selectedAlbum).cover_path);
     get(editDialog).showModal();
+}
+
+export async function openEditDialogFromAlbum() {
+    let songs = await loadSongs(get(selectedAlbum));
+    selectedSongs.set(songs);
+    openEditDialog();
 }
 
 export function closeEditDialog() {
@@ -35,11 +41,18 @@ export async function getNewCover() {
     }
 }
 
+export const editInProgress = writable(false);
+export const editProgress = writable(0);
+export const editTotal = writable(0);
+
 export async function commitChanges() {
     if (!get(selectedAlbum) || !get(selectedSongs)) {
         return;
     }
 
+    editInProgress.set(true);
+    editProgress.set(0);
+    editTotal.set(get(selectedSongs).length);
     let formData = new FormData(get(editDialog).querySelector('form'));
     let results = [];
 
@@ -63,8 +76,10 @@ export async function commitChanges() {
         .catch(error => {
             console.error(error);
         });
+        editProgress.update(n => n + 1);
     }
 
+    editInProgress.set(false);
     closeEditDialog();
     addToast({
         message: `Updated ${results.length} song${results.length > 1 ? 's' : ''}`,
@@ -72,5 +87,5 @@ export async function commitChanges() {
         timeout: 3000,
         dismissable: true
     });
-    refreshSongList(get(selectedAlbum));
+    refreshLibrary();
 }

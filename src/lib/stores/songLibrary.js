@@ -30,6 +30,7 @@ export async function loadAlbums(artist) {
         });
 }
 
+export const openAlbum = writable(null);
 export const songList = writable([]);
 
 export async function refreshSongList(album) {

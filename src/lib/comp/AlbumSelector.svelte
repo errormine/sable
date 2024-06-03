@@ -2,17 +2,18 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
-    import { loadSongs, refreshLibrary, songList } from '../stores/songLibrary';
+    import { loadSongs, openAlbum, refreshLibrary, songList } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
     import { downloadCoverImage } from '../stores/lastfmAPI';
-    import { selectedAlbum } from '../stores/tagEditor';
+    import { openEditDialogFromAlbum, selectedAlbum } from '../stores/tagEditor';
 
     export let albumList;
 
     $: albumList, clearSelectedAlbum();
 
     function clearSelectedAlbum() {
+        $openAlbum = null;
         $selectedAlbum = null;
         $songList = [];
     }
@@ -22,9 +23,9 @@
 
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
-        if ($selectedAlbum != album) {
+        if ($openAlbum != album) {
             $songList = await loadSongs(album);
-            $selectedAlbum = album;
+            $openAlbum = album;
             
             // Show song selector
             let albumListItem = target.parentNode;
@@ -33,7 +34,7 @@
         } else {
             // Ignore double clicks
             if (e.detail > 1) return;
-            $selectedAlbum = null;
+            $openAlbum = null;
             $songList = [];
         }
     }
@@ -96,7 +97,7 @@
     <Item on:click={addSelectedToQueue}>Add to Queue</Item>
     <Item>Shuffle Play</Item>
     <Divider />
-    <Item>Edit</Item>
+    <Item on:click={openEditDialogFromAlbum}>Edit</Item>
     <Item on:click={downloadSelectedAlbumCover}>Download Cover Image</Item>
     <Item on:click={removeSelectedAlbum}>Remove</Item>
     <Divider />

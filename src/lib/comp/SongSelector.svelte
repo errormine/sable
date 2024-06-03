@@ -9,8 +9,8 @@
     import { getContext, onMount } from 'svelte';
     import AlbumCover from './AlbumCover.svelte';
     import IconButton from './IconButton.svelte';
-    import { openEditDialog, selectedAlbum, selectedSongs } from '../stores/tagEditor';
-    import { loadSongs, refreshSongList, songList } from '../stores/songLibrary';
+    import { openEditDialog, selectedSongs } from '../stores/tagEditor';
+    import { loadSongs, refreshSongList, openAlbum, songList } from '../stores/songLibrary';
 
     export let domNode = null;
 
@@ -75,18 +75,18 @@
         for (let song of $selectedSongs) {
             await invoke('remove_song', song);
         }
-        refreshSongList($selectedAlbum);
+        refreshSongList($openAlbum);
     }
 </script>
 
-<section bind:this={domNode} class="song-selector" class:hidden={!$selectedAlbum}>
-    {#if $selectedAlbum}
+<section bind:this={domNode} class="song-selector" class:hidden={!$openAlbum || $songList.length < 1}>
+    {#if $openAlbum}
         <section class="album-info-wrapper glass">
-            <AlbumCover path={$selectedAlbum.cover_path} />
+            <AlbumCover path={$openAlbum.cover_path} />
             <section class="songs">
                 <header class="mb-05">
-                    <h2>{$selectedAlbum.title}</h2>
-                    <p class="subtitle">{$selectedAlbum.artist}</p>
+                    <h2>{$openAlbum.title}</h2>
+                    <p class="subtitle">{$openAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
                     {#each $songList as song, index}
