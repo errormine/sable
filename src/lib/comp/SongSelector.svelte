@@ -4,6 +4,7 @@
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { invokeWithToast } from '../utils';
     import IonIosClose from 'virtual:icons/ion/ios-close';
+    import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
@@ -43,6 +44,20 @@
 
     let lastSelectedIndex;
 
+    function windowKeyDown(e) {
+        if (e.key === 'Escape') {
+            $selectedSongs = [];
+        }
+    }
+
+    function windowMouseDown(e) {
+        let songList = document.querySelector('.song-list');
+        if (!songList.contains(e.target)) {
+            e.stopPropagation();
+            $selectedSongs = [];
+        }
+    }
+
     function select(e, song, index) {
         e.preventDefault();
         if (e.shiftKey && lastSelectedIndex !== undefined) {
@@ -51,8 +66,10 @@
             $selectedSongs = $songList.slice(start, end + 1);
         } else if (e.ctrlKey && !$selectedSongs.includes(song)) {
             $selectedSongs = [...$selectedSongs, song];
-        } else {
+        } else if (!$selectedSongs.includes(song)) {
             $selectedSongs = [song];
+        } else {
+            $selectedSongs = $selectedSongs.filter(s => s !== song);
         }
 
         lastSelectedIndex = index;
@@ -79,6 +96,7 @@
     }
 </script>
 
+<svelte:window on:keydown={windowKeyDown} on:mousedown={windowMouseDown} />
 <section bind:this={domNode} class="song-selector" class:hidden={!$openAlbum || $songList.length < 1}>
     {#if $openAlbum}
         <section class="album-info-wrapper glass">
@@ -92,11 +110,18 @@
                     {#each $songList as song, index}
                         <li class="song-item">
                             <button class="song" title={song.title} 
-                                class:active={$selectedSongs.includes(song)}
+                                class:active={$currentSong.title == song.title && $currentSong.artist == song.artist}
+                                class:selected={$selectedSongs.includes(song)}
                                 on:click={(e) => select(e, song, index)}
                                 on:dblclick={() => playSongAndQueue(song, index)}
                                 on:contextmenu={(e) => showContextMenu(e, song)}>
-                                <span class="track-number">{song.track_number}</span>
+                                <span class="track-number">
+                                    {#if $currentSong.title == song.title && $currentSong.artist == song.artist}
+                                        <IonVolumeHigh />
+                                    {:else}
+                                        {song.track_number}
+                                    {/if}
+                                </span>
                                 <p class="song-title no-wrap">{song.title}</p>
                                 <span class="duration">{sec2time(song.duration)}</span>
                             </button>
@@ -154,8 +179,13 @@
         &.active {
             background: var(--clr-gray-3);
         }
+
+        &.selected {
+            background: var(--clr-gray-5);
+        }
     
         & .track-number {
+            height: 1rem;
             color: var(--clr-gray-7);
         }
         
