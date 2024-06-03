@@ -28,8 +28,8 @@
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
         if (activeAlbum != album) {
-            activeAlbum = album;
             songList = await loadSongs(album);
+            activeAlbum = album;
             
             // Show song selector
             let albumListItem = target.parentNode;
