@@ -55,8 +55,12 @@ export async function commitChanges() {
     editTotal.set(get(selectedSongs).length);
     let formData = new FormData(get(editDialog).querySelector('form'));
     let results = [];
+    let refreshWholeLibrary = false;
 
     for (let song of get(selectedSongs)) {
+        if (song.album_title !== formData.get('album-title') || song.album_artist !== formData.get('album-artist')) {
+            refreshWholeLibrary = true;
+        }
         await invoke('update_metadata_song', {
             locationOnDisk: get(selectedAlbum).location_on_disk,
             filePath: song.file_path,
@@ -88,5 +92,5 @@ export async function commitChanges() {
         timeout: 3000,
         dismissable: true
     });
-    refreshLibrary();
+    refreshWholeLibrary ? refreshLibrary() : refreshSongList(get(selectedAlbum));
 }
