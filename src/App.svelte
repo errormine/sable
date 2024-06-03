@@ -24,7 +24,7 @@
     import { invokeWithToast } from './lib/utils';
 
     let loadingSongs = false;
-    let totalSongs = 0;
+    let songsTotal = 0;
     let songsRegistered = 0;
 
     async function openFile() {
@@ -44,7 +44,7 @@
         stopPlayback();
 
         await listen('total_songs', (event) => {
-            totalSongs = event.payload.message;
+            songsTotal = event.payload.message;
         });
 
         await listen('songs_registered', (event) => {
@@ -58,7 +58,7 @@
 
 <header id="menu-bar">
     {#if loadingSongs}
-        <p>Loading songs: {songsRegistered}/{totalSongs}</p>
+        <p>Registering songs... <progress max={songsTotal} value={songsRegistered}></progress></p>
     {:else}
         <button on:click={openFile}>Open file</button>
         <button on:click={refreshLibrary}>Refresh library</button>
