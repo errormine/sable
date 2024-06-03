@@ -35,7 +35,6 @@
             let albumListItem = target.parentNode;
             albumListItem.appendChild(songSelector.domNode);
             songSelector.updateSize(albumListItem);
-            albumSelector.scrollTo(0, target.offsetTop - 40);
         } else {
             // Ignore double clicks
             if (e.detail > 1) return;
