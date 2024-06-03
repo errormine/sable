@@ -12,7 +12,7 @@
             <fieldset>
                 <label for="cover-path"><AlbumCover path={$coverPath}/></label>
                 <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path" value={$coverPath}>
-                <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
+                <!-- <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p> -->
             </fieldset>
 
             <fieldset>

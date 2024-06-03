@@ -50,16 +50,7 @@
         }
     }
 
-    function windowMouseDown(e) {
-        let songList = document.querySelector('.song-list');
-        if (!songList.contains(e.target)) {
-            e.stopPropagation();
-            $selectedSongs = [];
-        }
-    }
-
     function select(e, song, index) {
-        e.preventDefault();
         if (e.shiftKey && lastSelectedIndex !== undefined) {
             let start = Math.min(lastSelectedIndex, index);
             let end = Math.max(lastSelectedIndex, index);
@@ -68,6 +59,8 @@
             $selectedSongs = [...$selectedSongs, song];
         } else if (e.ctrlKey && $selectedSongs.includes(song)) {
             $selectedSongs = $selectedSongs.filter(s => s !== song);
+        } else if ($selectedSongs == [song]) {
+            $selectedSongs = [];
         } else {
             $selectedSongs = [song];
         }
@@ -96,7 +89,7 @@
     }
 </script>
 
-<svelte:window on:keydown={windowKeyDown} on:mousedown={windowMouseDown} />
+<svelte:window on:keydown={windowKeyDown} />
 <section bind:this={domNode} class="song-selector" class:hidden={!$openAlbum || $songList.length < 1}>
     {#if $openAlbum}
         <section class="album-info-wrapper glass">

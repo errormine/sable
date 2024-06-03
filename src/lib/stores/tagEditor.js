@@ -79,6 +79,7 @@ export async function commitChanges() {
         editProgress.update(n => n + 1);
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 500));
     editInProgress.set(false);
     closeEditDialog();
     addToast({

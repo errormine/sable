@@ -26,6 +26,7 @@
         if ($openAlbum != album) {
             $songList = await loadSongs(album);
             $openAlbum = album;
+            $selectedAlbum = album;
             
             // Show song selector
             let albumListItem = target.parentNode;
@@ -35,6 +36,7 @@
             // Ignore double clicks
             if (e.detail > 1) return;
             $openAlbum = null;
+            $selectedAlbum = null;
             $songList = [];
         }
     }
