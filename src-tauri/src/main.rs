@@ -63,7 +63,6 @@ fn init_audio_player() {
             db::get_all_artists,
             db::remove_album,
             db::remove_song,
-            db::update_metadata_album,
             db::update_metadata_song,
         ])
         .run(tauri::generate_context!())

@@ -47,7 +47,6 @@
     }
 
     function playSongAndQueue(song, offset) {
-        selectedSong = song;
         play(song);
         setQueue(songList, offset);
     }
@@ -64,7 +63,7 @@
         await invoke('remove_song', selectedSong);
     }
 
-    // TODO: this logic is duplicated in AlbumSelector.svelte and should probably be moved to a shared location
+    // TODO: Tag editing should become a generic thing with support for multiple songs, albums, etc.
     function openEditDialog() {
         songEditDialog.showModal();
     }
@@ -113,7 +112,7 @@
         <form class="item-edit-form">
             <fieldset>
                 <label for="cover-path"><AlbumCover path={selectedSong.cover_path}/></label>
-                <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path">
+                <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path" value={selectedSong.cover_path}>
                 <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p>
             </fieldset>
 
@@ -128,7 +127,7 @@
                     <input type="text" id="artist" name="artist" value={selectedSong.artist}>
                 </label>
         
-                <label for="album">
+                <label for="album-title">
                     <span>Album Title</span>
                     <input type="text" id="album-title" name="album-title" value={selectedSong.album_title}>
                 </label>
@@ -179,7 +178,7 @@
                         <li class="song-item">
                             <!-- TODO: I would like to have the ability to select multiple songs at once for metadata editing -->
                             <button class="song" title={song.title} 
-                                class:active={selectedSong == song}
+                                class:active={$currentSong == song || selectedSong == song}
                                 on:click={() => playSongAndQueue(song, index)}
                                 on:contextmenu={(e) => showSongMenu(e, song)}>
                                 <span class="track-number">{song.track_number}</span>

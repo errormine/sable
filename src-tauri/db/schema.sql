@@ -37,20 +37,15 @@ BEGIN
     WHERE name = NEW.artist;
 END;
 
-CREATE TRIGGER IF NOT EXISTS update_album_count_before_replace
-BEFORE REPLACE ON album
-BEGIN
-    UPDATE artist
-    SET album_count = album_count - 1
-    WHERE name = NEW.artist;
-END;
-
-CREATE TRIGGER IF NOT EXISTS update_album_count_after_delete
-AFTER DELETE ON album
+CREATE TRIGGER IF NOT EXISTS update_album_count_before_delete
+BEFORE DELETE ON album
 BEGIN
     UPDATE artist
     SET album_count = album_count - 1
     WHERE name = OLD.artist;
+
+    DELETE FROM artist
+    WHERE name = OLD.artist AND album_count = 0;
 END;
 
 -- Song cover triggers
