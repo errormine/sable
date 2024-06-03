@@ -31,10 +31,12 @@
             text-align: center;
             text-transform: uppercase;
             color: var(--clr-gray-6);
-            height: var(--menu-bar-height);
+            height: var(--window-title-height);
+            padding-top: 0.2rem;
         }
     
-        & > .title {
+        & > header > .title {
+            height: 100%;
             display: inline;
             vertical-align: middle;
         }
@@ -42,6 +44,6 @@
 
     /* Svelte doesn't seem to play nice if this is nested */
     .window > :global(section) {
-        max-height: calc(100% - var(--menu-bar-height));
+        max-height: calc(100% - var(--window-title-height));
     }
 </style>

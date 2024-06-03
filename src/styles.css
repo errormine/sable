@@ -57,7 +57,8 @@
 }
 
 :root {
-    --menu-bar-height: 1.5rem;
+    --menu-bar-height: 2rem;
+    --window-title-height: 1.5rem;
     --controls-height: 4rem;
 
     --offset: calc(var(--controls-height) + var(--menu-bar-height));
@@ -70,6 +71,7 @@
 
     --clr-gray-0: #f8f9fa;
     --clr-gray-1: #f1f3f5;
+    --clr-gray-2: #e9ecef;
     --clr-gray-3: #dee2e6;
     --clr-gray-4: #ced4da;
     --clr-gray-5: #adb5bd;

@@ -9,6 +9,7 @@
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
     import Albums from './lib/windows/Albums.svelte';
+    import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
@@ -23,6 +24,8 @@
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
+
+    let fileContextMenu;
 
     let loadingSongs = false;
     let songsTotal = 0;
@@ -56,13 +59,19 @@
 
 <Toasts />
 <TagEditor />
+<ContextMenu bind:this={fileContextMenu}>
+    <Item on:click={openFile}>Add Folder...</Item>
+    <Item on:click={refreshLibrary}>Refresh Library</Item>
+</ContextMenu>
 
-<header id="menu-bar">
+<header class="menubar">
     {#if loadingSongs}
         <p>Registering songs... <progress max={songsTotal} value={songsRegistered}></progress></p>
     {:else}
-        <button on:click={openFile}>Open file</button>
-        <button on:click={refreshLibrary}>Refresh library</button>
+        <button on:click={(e) => fileContextMenu.show(e)}>File</button>
+        <button>Edit</button>
+        <button>View</button>
+        <button>Help</button>
     {/if}
 </header>
 <main>
@@ -80,8 +89,21 @@
 <PlayerControls />
 
 <style>
-    #menu-bar {
+    .menubar {
         height: var(--menu-bar-height);
+        display: flex;
+        color: var(--clr-gray-7);
+        background: var(--clr-gray-2);
+
+        & button {
+            padding: 0 0.5rem;
+            transition: all 200ms;
+        }
+
+        & button:hover {
+            color: var(--clr-gray-9);
+            background: var(--clr-gray-4);
+        }
     }
 
     main {

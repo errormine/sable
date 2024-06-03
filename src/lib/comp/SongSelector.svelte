@@ -4,7 +4,7 @@
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { invokeWithToast } from '../utils';
     import IonIosClose from 'virtual:icons/ion/ios-close';
-    import IonVolumeHigh from 'virtual:icons/ion/volume-high';
+    import IonVolumeMedium from 'virtual:icons/ion/volume-medium';
     import { sec2time } from '../utils';
     import { addToQueue, currentSong, insertIntoQueue, play, setQueue } from '../stores/audioPlayer';
     import { getContext, onMount } from 'svelte';
@@ -110,7 +110,7 @@
                                 on:contextmenu={(e) => showContextMenu(e, song)}>
                                 <span class="track-number">
                                     {#if $currentSong.title == song.title && $currentSong.artist == song.artist}
-                                        <IonVolumeHigh />
+                                        <IonVolumeMedium />
                                     {:else}
                                         {song.track_number}
                                     {/if}
