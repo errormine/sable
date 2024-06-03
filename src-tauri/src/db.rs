@@ -344,7 +344,7 @@ pub fn get_songs_by_album(title: String, artist: String) -> Result<String, Strin
 
 #[tauri::command]
 pub fn get_all_artists() -> Result<String, String> {
-    query_row("SELECT * FROM artist ORDER BY name")
+    query_row("SELECT artist AS name, COUNT(*) AS album_count FROM album GROUP BY artist ORDER BY artist")
 }
 
 #[tauri::command]
@@ -390,19 +390,14 @@ pub fn update_metadata_song(
 
     // TOOD: Add option to copy cover art to song directory
     conn.execute(
-        "DELETE FROM album WHERE title = ?1 AND artist = ?2",
-        params![album_title, album_artist]
-    ).map_err(|e| e.to_string())?;
-
-    conn.execute(
-        "INSERT INTO album (location_on_disk, cover_path, title, artist)
+        "REPLACE INTO album (location_on_disk, cover_path, title, artist)
         VALUES (?1, ?2, ?3, ?4)",
         params![location_on_disk, cover_path, album_title, album_artist]
     ).map_err(|e| e.to_string())?;
 
     conn.execute(
-        "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, year, genre)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        "UPDATE song SET cover_path = ?2, title = ?3, artist = ?4, album_title = ?5, album_artist = ?6, track_number = ?7, disc_number = ?8, year = ?9, genre = ?10
+        WHERE file_path = ?1",
         params![file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, year, genre]
     ).map_err(|e| e.to_string())?;
 

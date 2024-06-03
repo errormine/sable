@@ -1,10 +1,5 @@
 BEGIN TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS artist (
-    name TEXT UNIQUE PRIMARY KEY NOT NULL,
-    album_count INTEGER DEFAULT 0
-);
-
 CREATE TABLE IF NOT EXISTS album (
     location_on_disk TEXT PRIMARY KEY NOT NULL,
     cover_path TEXT,
@@ -28,27 +23,6 @@ CREATE TABLE IF NOT EXISTS song (
     genre TEXT
 );
 
--- Album count triggers
-CREATE TRIGGER IF NOT EXISTS update_album_count_after_insert
-AFTER INSERT ON album
-BEGIN
-    UPDATE artist
-    SET album_count = album_count + 1
-    WHERE name = NEW.artist;
-END;
-
-CREATE TRIGGER IF NOT EXISTS update_album_count_before_delete
-BEFORE DELETE ON album
-BEGIN
-    UPDATE artist
-    SET album_count = album_count - 1
-    WHERE name = OLD.artist;
-
-    DELETE FROM artist
-    WHERE name = OLD.artist AND album_count = 0;
-END;
-
--- Song cover triggers
 CREATE TRIGGER IF NOT EXISTS update_cover_path AFTER UPDATE OF cover_path ON album
 FOR EACH ROW
 BEGIN
