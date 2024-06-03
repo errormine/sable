@@ -338,6 +338,11 @@ pub fn get_albums_by_artist(artist: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub fn get_all_songs() -> Result<String, String> {
+    query_row("SELECT * FROM song ORDER BY album_artist, album_title, disc_number, track_number")
+}
+
+#[tauri::command]
 pub fn get_songs_by_album(title: String, artist: String) -> Result<String, String> {
     query_row_params("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number", params![title, artist])
 }

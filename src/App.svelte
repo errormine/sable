@@ -22,6 +22,7 @@
     import { setActiveTab } from './lib/stores/windowManager';
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
+    import Songs from './lib/windows/Songs.svelte';
 
     let loadingSongs = false;
     let songsTotal = 0;
@@ -69,6 +70,7 @@
     <WindowGroup name="main">
         <Albums />
         <ArtistPage />
+        <Songs />
     </WindowGroup>
     <WindowStack id="right">
         <SongQueue />
