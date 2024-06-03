@@ -10,10 +10,9 @@
     import AlbumCover from './AlbumCover.svelte';
     import IconButton from './IconButton.svelte';
     import { openEditDialog, selectedAlbum, selectedSongs } from '../stores/tagEditor';
-    import { loadSongs } from '../stores/songLibrary';
+    import { loadSongs, refreshSongList, songList } from '../stores/songLibrary';
 
     export let domNode = null;
-    export let songList = [];
 
     let owner = null;
     
@@ -45,7 +44,7 @@
 
     function playSongAndQueue(song, offset) {
         play(song);
-        setQueue(songList, offset);
+        setQueue($songList, offset);
     }
 
     function playSelectedNext() {
@@ -60,7 +59,7 @@
         for (let song of $selectedSongs) {
             await invoke('remove_song', song);
         }
-        songList = await loadSongs($selectedAlbum);
+        refreshSongList($selectedAlbum);
     }
 </script>
 
@@ -74,7 +73,7 @@
                     <p class="subtitle">{$selectedAlbum.artist}</p>
                 </header>
                 <ol class="song-list">
-                    {#each songList as song, index}
+                    {#each $songList as song, index}
                         <li class="song-item">
                             <button class="song" title={song.title} 
                                 class:active={$selectedSongs.includes(song)}

@@ -2,6 +2,8 @@ import { get, writable } from 'svelte/store';
 import { open } from "@tauri-apps/api/dialog";
 import { invokeWithToast } from '../utils';
 import { invoke } from '@tauri-apps/api/tauri';
+import { addToast } from './notifications';
+import { refreshSongList } from './songLibrary';
 
 export const editDialog = writable(null);
 export const selectedAlbum = writable(null);
@@ -42,20 +44,6 @@ export async function commitChanges() {
     let results = [];
 
     for (let song of get(selectedSongs)) {
-        console.log({
-            locationOnDisk: get(selectedAlbum).location_on_disk,
-            filePath: song.file_path,
-            coverPath: formData.get('cover-path') || song.cover_path,
-            title: formData.get('title') || song.title,
-            artist: formData.get('artist') || song.artist,
-            albumTitle: formData.get('album-title') || song.album_title,
-            albumArtist: formData.get('album-artist') || song.album_artist,
-            trackNumber: Number(formData.get('track-number')) || song.track_number,
-            discNumber: Number(formData.get('disc-number')) || song.disc_number,
-            year: Number(formData.get('year')) || song.year,
-            genre: formData.get('genre') || song.genre
-        });
-
         await invoke('update_metadata_song', {
             locationOnDisk: get(selectedAlbum).location_on_disk,
             filePath: song.file_path,
@@ -77,7 +65,12 @@ export async function commitChanges() {
         });
     }
 
-    console.log(results);
-
     closeEditDialog();
+    addToast({
+        message: `Updated ${results.length} song${results.length > 1 ? 's' : ''}`,
+        type: 'success',
+        timeout: 3000,
+        dismissable: true
+    });
+    refreshSongList(get(selectedAlbum));
 }

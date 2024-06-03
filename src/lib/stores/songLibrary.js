@@ -29,3 +29,9 @@ export async function loadAlbums(artist) {
             return JSON.parse(albumsJSON);
         });
 }
+
+export const songList = writable([]);
+
+export async function refreshSongList(album) {
+    songList.set(await loadSongs(album));
+}

@@ -2,7 +2,7 @@
     import { invoke } from '@tauri-apps/api/tauri';
     import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
     import { setQueue, addToQueue, attemptPlayNext, currentSong } from '../stores/audioPlayer';
-    import { loadSongs, refreshLibrary } from '../stores/songLibrary';
+    import { loadSongs, refreshLibrary, songList } from '../stores/songLibrary';
     import Album from '../comp/Album.svelte';
     import SongSelector from '../comp/SongSelector.svelte';
     import { downloadCoverImage } from '../stores/lastfmAPI';
@@ -14,17 +14,16 @@
 
     function clearSelectedAlbum() {
         $selectedAlbum = null;
-        songList = [];
+        $songList = [];
     }
 
     let albumSelector;
     let songSelector;
-    let songList;
 
     async function displayAlbumDetails(e, album) {
         let target = e.currentTarget;
         if ($selectedAlbum != album) {
-            songList = await loadSongs(album);
+            $songList = await loadSongs(album);
             $selectedAlbum = album;
             
             // Show song selector
@@ -35,7 +34,7 @@
             // Ignore double clicks
             if (e.detail > 1) return;
             $selectedAlbum = null;
-            songList = [];
+            $songList = [];
         }
     }
 
@@ -79,18 +78,18 @@
         <ul>
             {#each albumList as album}
                 <li class="album">
-                    <Album 
+                    <Album {album}
                         on:click={(e) => displayAlbumDetails(e, album)} 
                         on:dblclick={() => playAlbum(album)}
                         on:contextmenu={(e) => showAlbumContextMenu(e, album)}
-                        {album}/>
+                            />
                 </li>
             {/each}
         </ul>
     {:else}
         <p>No albums found</p>
     {/if}
-    <SongSelector bind:this={songSelector} {songList} />
+    <SongSelector bind:this={songSelector} />
 </section>
 <ContextMenu bind:this={albumContextMenu}>
     <Item on:click={playSelectedAlbumNext}>Play Next</Item>
