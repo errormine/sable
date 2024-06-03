@@ -39,6 +39,9 @@
           "url": "https://www.last.fm/*"
         },
         {
+          "url": "https://ws.audioscrobbler.com/2.0/*"
+        },
+        {
           "url": "https://api.deezer.com/*"
         },
         {
