@@ -3,9 +3,13 @@
     import { onMount } from "svelte";
     import Window from "../comp/Window.svelte";
     import { activeArtist, artists } from "../stores/songLibrary";
+    import ContextMenu, { Item, Divider } from "svelte-contextmenu";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
     import { getArtistImage, getArtistInfo, retrieveFromCache } from "../stores/lastfmAPI";
+
+    let artistsContextMenu;
+    let showAlbums = true;
 
     function toggleArtistPage(artist) {
         if ($activeArtist === artist) {
@@ -38,14 +42,22 @@
     });
 </script>
 
-<Window title="Artists">
+<ContextMenu bind:this={artistsContextMenu}>
+    <Item on:click={() => showAlbums = true}>
+        {showAlbums ? "✓" : " "} Show albums
+    </Item>
+    <Item on:click={() => showAlbums = false}>
+        {!showAlbums ? "✓" : " "} Show tracks
+    </Item>
+</ContextMenu>
+<Window title="Artists" contextMenu={artistsContextMenu}>
     <section class="artists">
         {#if $artists}
             <ul class="artist-list">
                 {#each $artists as artist (artist.name)}
                     <CardListItem 
                         title={artist.name} 
-                        subtitle={artist.album_count + " albums"}
+                        subtitle={showAlbums ? artist.album_count + " albums" : artist.song_count + " tracks"}
                         highlighted={artist === $activeArtist}
                         onClick={() => toggleArtistPage(artist)}
                             >

@@ -1,10 +1,16 @@
 <script>
     import { getContext, onMount } from "svelte";
     import { groups, registerTab } from "../stores/windowManager";
+    import ContextMenu from "svelte-contextmenu";
+    import IonIosMenu from "virtual:icons/ion/ios-menu";
 
     const group = getContext("group");
 
     export let title = "Window";
+    /**
+     * @type {ContextMenu | null}
+     */
+    export let contextMenu = null;
     
     let window;
     
@@ -17,7 +23,14 @@
 
 <section bind:this={window} class="window">
     <header>
-        <p class="title">{title}</p>
+        <section class="title">
+            <p>{title}</p>
+        </section>
+        {#if contextMenu}
+            <button on:click={(e) => contextMenu.show(e)}>
+                <IonIosMenu/>
+            </button>
+        {/if}
     </header>
     <slot />
 </section>
@@ -28,6 +41,8 @@
     
         & > header {
             background: var(--clr-gray-1);
+            display: flex;
+            justify-content: space-between;
             text-align: center;
             text-transform: uppercase;
             color: var(--clr-gray-6);
@@ -39,6 +54,7 @@
             height: 100%;
             display: inline;
             vertical-align: middle;
+            flex: 1;
         }
     }
 

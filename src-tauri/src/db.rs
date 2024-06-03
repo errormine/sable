@@ -391,8 +391,11 @@ pub fn get_songs_by_album(title: String, artist: String) -> Result<String, Strin
 #[tauri::command]
 pub fn get_all_artists() -> Result<String, String> {
     query_row(
-        "SELECT artist AS name, COUNT(*) AS album_count FROM album GROUP BY artist ORDER BY artist",
-    )
+        "SELECT 
+            artist AS name, 
+            COUNT(*) AS album_count,
+            (SELECT COUNT(*) FROM song WHERE song.album_artist = album.artist) AS song_count
+        FROM album GROUP BY artist ORDER BY artist")
 }
 
 #[tauri::command]
