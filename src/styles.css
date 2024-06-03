@@ -66,6 +66,7 @@
     --clr-primary-light: #339af0;
 
     --clr-primary: var(--clr-primary-light);
+    --clr-primary-dark: color-mix(in oklab, var(--clr-primary) 75%, black);
 
     --clr-gray-0: #f8f9fa;
     --clr-gray-1: #f1f3f5;
@@ -255,6 +256,26 @@ fieldset {
 /* width */
 ::-webkit-scrollbar {
     width: 5px;
+}
+
+
+/* Slider and Progress */
+progress {
+    -webkit-appearance: none;
+    overflow: hidden;
+    width: 100%;
+}
+
+::-webkit-progress-value {
+    transition: width 0.25s;
+    background: linear-gradient(to right, var(--clr-primary-dark), var(--clr-primary));
+    border-radius: 10px;
+}
+
+::-webkit-progress-bar {
+    background: var(--clr-gray-3);
+    border: 1px solid var(--clr-gray-6);
+    border-radius: 10px;
 }
 
 /* Track */
