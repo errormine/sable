@@ -66,10 +66,10 @@
             $selectedSongs = $songList.slice(start, end + 1);
         } else if (e.ctrlKey && !$selectedSongs.includes(song)) {
             $selectedSongs = [...$selectedSongs, song];
-        } else if (!$selectedSongs.includes(song)) {
-            $selectedSongs = [song];
-        } else {
+        } else if (e.ctrlKey && $selectedSongs.includes(song)) {
             $selectedSongs = $selectedSongs.filter(s => s !== song);
+        } else {
+            $selectedSongs = [song];
         }
 
         lastSelectedIndex = index;
