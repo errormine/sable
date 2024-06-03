@@ -34,12 +34,28 @@
 
     let songContextMenu;
 
-    function select(e, song) {
-        if (e.ctrlKey && !$selectedSongs.includes(song)) {
+    function showContextMenu(e, song) {
+        if (!$selectedSongs.includes(song)) {
+            $selectedSongs = [song];
+        }
+        songContextMenu.show(e);
+    }
+
+    let lastSelectedIndex;
+
+    function select(e, song, index) {
+        e.preventDefault();
+        if (e.shiftKey && lastSelectedIndex !== undefined) {
+            let start = Math.min(lastSelectedIndex, index);
+            let end = Math.max(lastSelectedIndex, index);
+            $selectedSongs = $songList.slice(start, end + 1);
+        } else if (e.ctrlKey && !$selectedSongs.includes(song)) {
             $selectedSongs = [...$selectedSongs, song];
         } else {
             $selectedSongs = [song];
         }
+
+        lastSelectedIndex = index;
     }
 
     function playSongAndQueue(song, offset) {
@@ -77,9 +93,9 @@
                         <li class="song-item">
                             <button class="song" title={song.title} 
                                 class:active={$selectedSongs.includes(song)}
-                                on:click={(e) => select(e, song)}
+                                on:click={(e) => select(e, song, index)}
                                 on:dblclick={() => playSongAndQueue(song, index)}
-                                on:contextmenu={(e) => songContextMenu.show(e)}>
+                                on:contextmenu={(e) => showContextMenu(e, song)}>
                                 <span class="track-number">{song.track_number}</span>
                                 <p class="song-title no-wrap">{song.title}</p>
                                 <span class="duration">{sec2time(song.duration)}</span>
