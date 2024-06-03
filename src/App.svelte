@@ -9,7 +9,7 @@
     import { emit, listen } from '@tauri-apps/api/event';
     import Toasts from './lib/comp/Toasts.svelte';
     import Albums from './lib/windows/Albums.svelte';
-    import ContextMenu, { Item, Divider } from 'svelte-contextmenu';
+    import ContextMenu, { Item, Divider, Settings, defaultSettings } from 'svelte-contextmenu';
     import PlayerControls from './lib/windows/AudioControls.svelte';
     import SongQueue from './lib/windows/SongQueue.svelte';
     import TrackInfo from './lib/windows/TrackInfo.svelte';
@@ -24,6 +24,14 @@
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
+
+    const contextSettings = new Settings();
+    contextSettings.Menu.Class.push('context-menu');
+    contextSettings.Menu.VisibleClass.push('context-menu-active');
+    contextSettings.Item.Class.push('context-item');
+    contextSettings.Divider.Class.push('context-divider');
+
+    defaultSettings.set(contextSettings);
 
     let fileContextMenu;
 
