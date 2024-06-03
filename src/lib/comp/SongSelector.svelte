@@ -59,7 +59,7 @@
             $selectedSongs = [...$selectedSongs, song];
         } else if (e.ctrlKey && $selectedSongs.includes(song)) {
             $selectedSongs = $selectedSongs.filter(s => s !== song);
-        } else if ($selectedSongs == [song]) {
+        } else if ($selectedSongs.length == 1 && $selectedSongs[0] === song) {
             $selectedSongs = [];
         } else {
             $selectedSongs = [song];
