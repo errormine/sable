@@ -37,6 +37,14 @@ BEGIN
     WHERE name = NEW.artist;
 END;
 
+CREATE TRIGGER IF NOT EXISTS update_album_count_before_replace
+BEFORE REPLACE ON album
+BEGIN
+    UPDATE artist
+    SET album_count = album_count - 1
+    WHERE name = NEW.artist;
+END;
+
 CREATE TRIGGER IF NOT EXISTS update_album_count_after_delete
 AFTER DELETE ON album
 BEGIN
