@@ -24,6 +24,7 @@
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
+    import { ApiCredentials, getSession, getToken } from './lib/stores/lastfmAPI';
 
     const contextSettings = new Settings();
     contextSettings.Menu.Class.push('context-menu');
@@ -50,6 +51,21 @@
         }
     }
 
+    async function authenticateLastFm() {
+        let token = await getToken();
+
+        window.open(`http://www.last.fm/api/auth/?api_key=${ApiCredentials.apiKey}&token=${token}`, '_blank');
+
+        let session = await getSession(token);
+        console.log(session);
+    }
+
+    async function lastFmPrint() {
+        let token = await getToken();
+        let session = await getSession(token);
+        console.log(session);
+    }
+
     onMount(async () => {
         setActiveTab('main', 'Albums');
         refreshLibrary();
@@ -70,6 +86,7 @@
 <ContextMenu bind:this={fileContextMenu}>
     <Item on:click={openFile}>Add Folder...</Item>
     <Item on:click={refreshLibrary}>Refresh Library</Item>
+    <Item on:click={authenticateLastFm}>Link Last.fm Account</Item>
 </ContextMenu>
 
 <header class="menubar">
