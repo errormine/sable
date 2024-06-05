@@ -38,6 +38,10 @@ export class LastFM {
     
         for (let key in params) {
             if (key == null) continue;
+            // Convert tags arrays to comma-separated strings
+            if (key == 'tags') {
+                params[key] = params[key].join(',');
+            }
             url += '&' + key + '=' + encodeURIComponent(params[key]);
         }
     
