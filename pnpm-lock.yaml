@@ -26,6 +26,9 @@ importers:
       '@tauri-apps/plugin-shell':
         specifier: 2.0.0-beta.6
         version: 2.0.0-beta.6
+      '@tauri-apps/plugin-stronghold':
+        specifier: 2.0.0-beta.5
+        version: 2.0.0-beta.5
       tauri-plugin-stronghold-api:
         specifier: github:tauri-apps/tauri-plugin-stronghold#v1
         version: https://codeload.github.com/tauri-apps/tauri-plugin-stronghold/tar.gz/b2fb75dd06ba927a6a266613c6c2e553507e489a
@@ -430,6 +433,9 @@ packages:
 
   '@tauri-apps/plugin-shell@2.0.0-beta.6':
     resolution: {integrity: sha512-g3nM9cQQGl7Iv4MvyFuco/aPTiwOI/MixcoKso3VQIg5Aqd64NqR0r+GfsB0qx52txItqzSXwmeaj1eZjO9Q6Q==}
+
+  '@tauri-apps/plugin-stronghold@2.0.0-beta.5':
+    resolution: {integrity: sha512-9xUI0PMTAGwaA5Do1HEu2vmS/fUbNgq18bbwBI5gAWnCkWsU6ZdgKK0UhrSj2XmP42x90RA9MnLt+VaQNH5j9w==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -1054,6 +1060,10 @@ snapshots:
       '@tauri-apps/api': 2.0.0-beta.13
 
   '@tauri-apps/plugin-shell@2.0.0-beta.6':
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.13
+
+  '@tauri-apps/plugin-stronghold@2.0.0-beta.5':
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.13
 

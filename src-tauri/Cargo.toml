@@ -25,6 +25,7 @@ tauri-plugin-http = "2.0.0-beta.9"
 tauri-plugin-dialog = "2.0.0-beta.9"
 tauri-plugin-shell = "2.0.0-beta.7"
 tauri-plugin-fs = "2.0.0-beta.9"
+tauri-plugin-stronghold = "2.0.0-beta.6"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
