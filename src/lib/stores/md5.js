@@ -19,13 +19,13 @@ var chrsz   = 8;  /* bits per input character. 8 - ASCII; 16 - Unicode      */
  * These are the functions you'll usually want to call
  * They take string arguments and return either hex or base-64 encoded strings
  */
-function md5(s){ return hex_md5(s); }
-function hex_md5(s){ return binl2hex(core_md5(str2binl(s), s.length * chrsz));}
-function b64_md5(s){ return binl2b64(core_md5(str2binl(s), s.length * chrsz));}
-function str_md5(s){ return binl2str(core_md5(str2binl(s), s.length * chrsz));}
-function hex_hmac_md5(key, data) { return binl2hex(core_hmac_md5(key, data)); }
-function b64_hmac_md5(key, data) { return binl2b64(core_hmac_md5(key, data)); }
-function str_hmac_md5(key, data) { return binl2str(core_hmac_md5(key, data)); }
+export function md5(s){ return hex_md5(s); }
+export function hex_md5(s){ return binl2hex(core_md5(str2binl(s), s.length * chrsz));}
+export function b64_md5(s){ return binl2b64(core_md5(str2binl(s), s.length * chrsz));}
+export function str_md5(s){ return binl2str(core_md5(str2binl(s), s.length * chrsz));}
+export function hex_hmac_md5(key, data) { return binl2hex(core_hmac_md5(key, data)); }
+export function b64_hmac_md5(key, data) { return binl2b64(core_hmac_md5(key, data)); }
+export function str_hmac_md5(key, data) { return binl2str(core_hmac_md5(key, data)); }
 
 /*
  * Perform a simple self-test to see if the VM is working

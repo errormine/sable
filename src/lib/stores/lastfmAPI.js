@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { fetch } from "@tauri-apps/plugin-http";
 import { getRecord, insertRecord } from "./stronghold";
+import { md5 } from "./md5";
 
 export class LastFM {
     /**
@@ -8,13 +9,15 @@ export class LastFM {
      * @param {Object} options - The options for the LastFM client.
      * @param {string} options.apiKey - The API key for LastFM.
      * @param {string} options.apiSecret - The API secret for LastFM.
-     * @param {string} [options.apiUrl='http://ws.audioscrobbler.com/2.0/'] - The API URL for LastFM.
+     * @param {string} [options.apiUrl='https://ws.audioscrobbler.com/2.0/'] - The API URL for LastFM.
+     * @param {boolean} [options.verbose=false] - Whether to log requests to the console.
      * @constructor
      */
     constructor(options) {
         this.apiKey = options.apiKey;
         this.apiSecret = options.apiSecret;
-        this.apiUrl = options.apiUrl;
+        this.apiUrl = options.apiUrl || 'https://ws.audioscrobbler.com/2.0/';
+        this.verbose = options.verbose || false;
         this.album = new Album(this);
         this.artist = new Artist(this);
         this.auth = new Auth(this);
@@ -26,6 +29,26 @@ export class LastFM {
         this.user = new User(this);
     }
 
+    paramsToString(params, urlEncoded = true) {
+        let string = '';
+
+        for (let key in params) {
+            if (key == null) continue;
+            // Convert tags arrays to comma-separated strings
+            if (key == 'tags') {
+                params[key] = params[key].join(',');
+            }
+
+            if (urlEncoded) {
+                string += '&' + key + '=' + encodeURIComponent(params[key]);
+            } else {
+                string += key + params[key];
+            }
+        }
+
+        return string;
+    }
+
     /**
      * Make a request to the LastFM API.
      * @param {string} endpoint - The endpoint to request.
@@ -35,14 +58,11 @@ export class LastFM {
      */
     async request(endpoint, params, method = 'GET') {
         let url = this.apiUrl + '?method=' + endpoint + '&api_key=' + this.apiKey + '&format=json';
-    
-        for (let key in params) {
-            if (key == null) continue;
-            // Convert tags arrays to comma-separated strings
-            if (key == 'tags') {
-                params[key] = params[key].join(',');
-            }
-            url += '&' + key + '=' + encodeURIComponent(params[key]);
+
+        url += this.paramsToString(params);
+
+        if (this.verbose) {
+            console.log(`[LastFM] Requesting ${url}`);
         }
     
         if (method === 'POST') {
@@ -69,9 +89,12 @@ export class LastFM {
      * @returns {Promise<Object>}
      */
     async requestSigned(endpoint, params, sk, method = 'GET') {
-        let signature = md5(`api_key${this.apiKey}method${endpoint}${params}${this.apiSecret}`);
+        let paramsString = this.paramsToString(params, false);
+        let api_sig = md5(`api_key${this.apiKey}method${endpoint}${paramsString}${this.apiSecret}`);
 
-        return this.request(endpoint, { ...params, api_sig: signature, sk }, method);
+        if (sk == null) return this.request(endpoint, { ...params, api_sig }, method);
+
+        return this.request(endpoint, { ...params, api_sig, sk }, method);
     }
 }
 
@@ -338,26 +361,33 @@ class Auth {
     }
 
     /**
-     * 
-     * @param {Object} params 
-     * @param {string} params.token - A 32-character ASCII hexadecimal MD5 hash returned by step 1 of the authentication process (following the granting of permissions to the application by the user)
-     * @param {string} params.api_key - A Last.fm API key.
-     * @param {string} params.api_sig - A Last.fm method signature. See {@link https://www.last.fm/api/authentication} for more information.
-     * @returns {Promise<Object>}
+     * This is a helper function to generate the OAuth URL for the user to authorize the application.
+     * @param {string} token - A 32-character ASCII hexadecimal MD5 hash returned by step 1 of the authentication process (following the granting of permissions to the application by the user).
+     * @returns {Promise<string>}
+     * @see {@link https://www.last.fm/api/authentication}
      */
-    async getSession(params) {
-        return this.#client.request('auth.getSession', params);
+    async getAuthUrl(token) {
+        return `http://www.last.fm/api/auth/?api_key=${this.#client.apiKey}&token=${token}`
     }
 
     /**
-     * 
-     * @param {Object} params
-     * @param {string} params.api_key - A Last.fm API key.
-     * @param {string} params.api_sig - A Last.fm method signature. See {@link https://www.last.fm/api/authentication} for more information.
+     * Fetch a session key for a user. The third step in the authentication process. See the {@link https://www.last.fm/api/authentication|authentication how-to} for more information.
+     * @param {Object} params 
+     * @param {string} params.token - A 32-character ASCII hexadecimal MD5 hash returned by step 1 of the authentication process (following the granting of permissions to the application by the user)
      * @returns {Promise<Object>}
      */
-    async getToken(params) {
-        return this.#client.request('auth.getToken', params);
+    async getSession(params) {
+        return this.#client.requestSigned('auth.getSession', params, null);
+    }
+
+    /**
+     * Fetch an unathorized request token for an API account. This is step 2 of the authentication process for desktop applications. Web applications do not need to use this service.
+     * @returns {Promise<string>}
+     */
+    async getToken() {
+        let data = await this.#client.request('auth.getToken', {});
+        console.log(`Token: ${data.token}`);
+        return data.token;
     }
 }
 
@@ -961,31 +991,31 @@ class User {
 
 export const lastFm = new LastFM({
     apiKey: import.meta.env.VITE_LASTFM_API_KEY,
-    apiSecret: import.meta.env.VITE_LASTFM_SECRET
+    apiSecret: import.meta.env.VITE_LASTFM_API_SECRET,
+    verbose: true
 });
 
-// export function getSession(token) {
-//     return getRecord("lastfm_session")
-//         .then(session => {
-//             if (session) {
-//                 return session;
-//             }
+export function getAuthUrl(token) {
+    return lastFm.auth.getAuthUrl(token);
+}
 
-//             let signature = md5(`api_key${ApiCredentials.apiKey}methodauth.getSessiontoken${token}${ApiCredentials.secret}`);
-//             console.log(signature);
+export function getToken() {
+    return lastFm.auth.getToken();
+}
 
-//             return fetch(`https://ws.audioscrobbler.com/2.0/?method=auth.getsession&token=${token}&api_key=${ApiCredentials.apiKey}&api_sig=${signature}&format=json`)
-//                 .then(res => res.json())
-//                 .then(data => {
-//                     console.log(data);
-//                     insertRecord("lastfm_session", data.session);
-//                     return data.session;
-//                 });
-//         })
-//         .catch(err => {
-//             console.error(err);
-//         });
-// }
+export function getSession(token) {
+    return getRecord("lastfm_session")
+        .then(session => {
+            if (session) {
+                return session;
+            }
+
+            return lastFm.auth.getSession({ token });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+}
 
 async function download(url, dest) {
     const response = await fetch(url);

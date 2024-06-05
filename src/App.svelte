@@ -16,15 +16,15 @@
     import { onMount, setContext } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
-    import ArtistPage from './lib/windows/ArtistPage.svelte';
-    import Artists from './lib/windows/Artists.svelte';
+    // import ArtistPage from './lib/windows/ArtistPage.svelte';
+    // import Artists from './lib/windows/Artists.svelte';
     import { refreshLibrary } from './lib/stores/songLibrary';
     import WindowGroup from './lib/comp/WindowGroup.svelte';
     import { setActiveTab } from './lib/stores/windowManager';
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
-    import { ApiCredentials, getSession, getToken } from './lib/stores/lastfmAPI';
+    import { getToken, getSession, getAuthUrl } from './lib/stores/lastfmAPI';
 
     const contextSettings = new Settings();
     contextSettings.Menu.Class.push('context-menu');
@@ -53,10 +53,16 @@
 
     async function authenticateLastFm() {
         let token = await getToken();
+        let url = await getAuthUrl(token);
+        localStorage.setItem('lastfm_token', token);
 
-        window.open(`http://www.last.fm/api/auth/?api_key=${ApiCredentials.apiKey}&token=${token}`, '_blank');
+        window.open(url, '_blank');
+    }
 
+    async function printSession() {
+        let token = localStorage.getItem('lastfm_token');
         let session = await getSession(token);
+        localStorage.removeItem('lastfm_token');
         console.log(session);
     }
 
@@ -87,6 +93,7 @@
     <Item on:click={openFile}>Add Folder...</Item>
     <Item on:click={refreshLibrary}>Refresh Library</Item>
     <Item on:click={authenticateLastFm}>Link Last.fm Account</Item>
+    <Item on:click={printSession}>Print Last.fm Session</Item>
 </ContextMenu>
 
 <header class="menubar">
@@ -100,10 +107,10 @@
     {/if}
 </header>
 <main>
-    <Artists />
+    <!-- <Artists /> -->
     <WindowGroup name="main">
         <Albums />
-        <ArtistPage />
+        <!-- <ArtistPage /> -->
         <Songs />
     </WindowGroup>
     <WindowStack id="right">
