@@ -58,15 +58,8 @@
     }
 
     async function printSession() {
-        let session = await lastFm.auth.getSession();
+        let session = await getSession();
         console.log(session);
-
-        let sessionKey = session.key;
-        await lastFm.track.updateNowPlaying({
-            artist: 'Test Artist',
-            track: 'Test Track',
-            duration: 90,
-        }, sessionKey);
     }
 
     async function lastFmPrint() {

@@ -17,18 +17,27 @@ export function getToken() {
     return lastFm.auth.getToken();
 }
 
-export function getSession() {
-    return getRecord("lastfm_session")
-        .then(session => {
-            if (session) {
-                return session;
-            }
+export async function getSession() {
+    let name = await getRecord("lastfm_name");
+    let key = await getRecord("lastfm_key");
+    let subscriber = await getRecord("lastfm_subscriber");
 
-            return lastFm.auth.getSession();
-        })
-        .catch(err => {
-            console.error(err);
-        });
+    if (!name || !key || !subscriber) {
+        return lastFm.auth.getSession()
+            .then(session => {
+                insertRecord("lastfm_name", session.name);
+                insertRecord("lastfm_key", session.key);
+                insertRecord("lastfm_subscriber", session.subscriber);
+
+                return session;
+            })
+            .catch(err => {
+                console.error(err);
+                return null;
+            });
+    }
+
+    return { name, key, subscriber };
 }
 
 async function download(url, dest) {
