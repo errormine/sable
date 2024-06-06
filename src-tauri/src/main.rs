@@ -5,6 +5,7 @@ mod audio;
 mod db;
 
 use rusqlite::Connection;
+use tauri::Manager;
 use std::fs;
 
 // https://tauri.app/v1/guides/features/events/
@@ -18,23 +19,22 @@ struct MusicPlayer {
 }
 
 fn main() {
-    init_database();
     init_audio_player();
-}
-
-fn init_database() {
-    println!("Initializing database...");
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    let schema = fs::read_to_string("db/schema.sql").unwrap();
-
-    db.execute_batch(schema.as_str())
-        .expect("Failed to create database");
 }
 
 fn init_audio_player() {
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
 
     tauri::Builder::default()
+        .setup(|app| {
+            let db_path = app.path().app_local_data_dir().unwrap().join("music.db");
+            let conn = Connection::open(db_path).unwrap();
+            let schema_path = app.path().resource_dir().unwrap().join("db/schema.sql");
+            let schema = fs::read_to_string(schema_path).unwrap();
+
+            conn.execute_batch(&schema).expect("Failed to create database");
+            Ok(())
+        })
         .plugin(
             tauri_plugin_stronghold::Builder::new(|password| {
                 // https://v2.tauri.app/plugin/stronghold/

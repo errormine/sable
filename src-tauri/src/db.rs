@@ -70,6 +70,13 @@ impl Clone for SongMetadata {
     }
 }
 
+fn get_db_connection(app: tauri::AppHandle) -> Result<Connection, Box<dyn Error>> {
+    let local_data_dir = app.path().app_local_data_dir()?;
+    let db_path = local_data_dir.join("music.db");
+
+    Ok(Connection::open(db_path)?)
+}
+
 fn is_audio_file(path: &Path) -> bool {
     if !path.is_file() {
         return false;
@@ -185,17 +192,12 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     });
 }
 
-fn commit_to_db(albums: HashMap<String, AlbumMetadata>) -> Result<(), Box<dyn Error>> {
-    let mut db = Connection::open("D:/Documents/music.db")?;
-    let tx = db.transaction()?;
+fn commit_to_db(albums: HashMap<String, AlbumMetadata>, app: tauri::AppHandle) -> Result<(), Box<dyn Error>> {
+    let mut conn = get_db_connection(app)?;
+    let tx = conn.transaction()?;
 
     for (_, album) in albums {
         let cover_path = album.cover_path.clone().unwrap_or_default();
-
-        tx.execute(
-            "INSERT OR IGNORE INTO artist (name) VALUES (?1)",
-            params![&album.artist],
-        )?;
 
         tx.execute(
             "INSERT OR IGNORE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
@@ -309,7 +311,7 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
         .unwrap();
     }
 
-    commit_to_db(albums).map_err(|e| e.to_string())?;
+    commit_to_db(albums, app).map_err(|e| e.to_string())?;
 
     let mut message = format!("Registered {} songs", successful);
     if failed > 0 {
@@ -351,74 +353,79 @@ fn query_to_json<T: Params>(
     Ok(json)
 }
 
-fn query_row_params<T: Params>(query: &str, params: T) -> Result<String, String> {
-    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+fn query_row_params<T: Params>(query: &str, params: T, app: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_db_connection(app).map_err(|e| e.to_string())?;
     let json = query_to_json(&conn, query, params).map_err(|e| e.to_string())?;
 
     Ok(json)
 }
 
-fn query_row(query: &str) -> Result<String, String> {
-    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+fn query_row(query: &str, app: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_db_connection(app).map_err(|e| e.to_string())?;
     let json = query_to_json(&conn, query, params![]).map_err(|e| e.to_string())?;
 
     Ok(json)
 }
 
 #[tauri::command]
-pub fn get_all_albums() -> Result<String, String> {
-    query_row("SELECT * FROM album ORDER BY artist, title")
+pub fn get_all_albums(app: tauri::AppHandle) -> Result<String, String> {
+    query_row("SELECT * FROM album ORDER BY artist, title", app)
 }
 
 #[tauri::command]
-pub fn get_albums_by_artist(artist: String) -> Result<String, String> {
+pub fn get_albums_by_artist(artist: String, app: tauri::AppHandle) -> Result<String, String> {
     query_row_params(
         "SELECT * FROM album WHERE artist = ?1 ORDER BY title",
         params![artist],
+        app
     )
 }
 
 #[tauri::command]
-pub fn get_all_songs() -> Result<String, String> {
-    query_row("SELECT * FROM song ORDER BY album_artist, album_title, disc_number, track_number")
+pub fn get_all_songs(app: tauri::AppHandle) -> Result<String, String> {
+    query_row("SELECT * FROM song ORDER BY album_artist, album_title, disc_number, track_number", app)
 }
 
 #[tauri::command]
-pub fn get_songs_by_album(title: String, artist: String) -> Result<String, String> {
-    query_row_params("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number", params![title, artist])
+pub fn get_songs_by_album(title: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
+    query_row_params("SELECT * FROM song WHERE album_title = ?1 AND album_artist = ?2 ORDER BY disc_number, track_number", params![title, artist], app)
 }
 
 #[tauri::command]
-pub fn get_all_artists() -> Result<String, String> {
+pub fn get_all_artists(app: tauri::AppHandle) -> Result<String, String> {
     query_row(
         "SELECT 
             artist AS name, 
             COUNT(*) AS album_count,
             (SELECT COUNT(*) FROM song WHERE song.album_artist = album.artist) AS song_count
         FROM album GROUP BY artist ORDER BY artist",
+        app
     )
 }
 
 #[tauri::command]
-pub fn remove_album(album: String, artist: String) {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    db.execute(
+pub fn remove_album(album: String, artist: String, app: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_db_connection(app).map_err(|e| e.to_string())?;
+
+    conn.execute(
         "DELETE FROM song WHERE album_title = ?1 AND album_artist = ?2",
         params![album, artist],
-    )
-    .unwrap();
-    db.execute(
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
         "DELETE FROM album WHERE title = ?1 AND artist = ?2",
         params![album, artist],
-    )
-    .unwrap();
+    ).map_err(|e| e.to_string())?;
+
+    Ok("Album removed".into())
 }
 
 #[tauri::command]
-pub fn remove_song(file_path: String) {
-    let db = Connection::open("D:/Documents/music.db").unwrap();
-    db.execute("DELETE FROM song WHERE file_path = ?1", params![file_path])
-        .unwrap();
+pub fn remove_song(file_path: String, app: tauri::AppHandle) -> Result<String, String> {
+    let conn = get_db_connection(app).map_err(|e| e.to_string())?;
+
+    conn.execute("DELETE FROM song WHERE file_path = ?1", params![file_path]).map_err(|e| e.to_string())?;
+    Ok("Song removed".into())
 }
 
 #[tauri::command]
@@ -434,11 +441,12 @@ pub fn update_metadata_song(
     disc_number: u16,
     year: i32,
     genre: String,
+    app: tauri::AppHandle
 ) -> Result<String, String> {
     let mut tag = Tag::new()
         .read_from_path(&file_path)
         .map_err(|e| e.to_string())?;
-    let conn = Connection::open("D:/Documents/music.db").map_err(|e| e.to_string())?;
+    let conn = get_db_connection(app).map_err(|e| e.to_string())?;
 
     tag.set_title(&title);
     tag.set_artist(&artist);
@@ -456,8 +464,7 @@ pub fn update_metadata_song(
         "REPLACE INTO album (location_on_disk, cover_path, title, artist)
         VALUES (?1, ?2, ?3, ?4)",
         params![location_on_disk, cover_path, album_title, album_artist],
-    )
-    .map_err(|e| e.to_string())?;
+    ).map_err(|e| e.to_string())?;
 
     conn.execute(
         "UPDATE song SET cover_path = ?2, title = ?3, artist = ?4, album_title = ?5, album_artist = ?6, track_number = ?7, disc_number = ?8, year = ?9, genre = ?10
