@@ -18,12 +18,12 @@
     "@tauri-apps/plugin-http": "2.0.0-beta.5",
     "@tauri-apps/plugin-shell": "2.0.0-beta.6",
     "@tauri-apps/plugin-stronghold": "2.0.0-beta.5",
-    "tauri-lastfm": "^1.1.0",
+    "tauri-lastfm": "^1.1.2",
     "unplugin-icons": "^0.19.0"
   },
   "devDependencies": {
     "@iconify-json/ion": "^1.1.18",
-    "@iconify-json/logos": "^1.1.42",
+    "@iconify-json/logos": "^1.1.43",
     "@iconify-json/solar": "^1.1.9",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "@tauri-apps/cli": "2.0.0-beta.20",

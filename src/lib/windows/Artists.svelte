@@ -27,9 +27,6 @@
             let cachedInfo = localStorage.getItem(artist.name);
 
             if (cachedInfo) {
-                if (import.meta.env.DEV) {
-                    console.log("Using cached info for " + artist.name);
-                }
                 artistInfos[artist.name] = JSON.parse(cachedInfo);
                 continue;
             }

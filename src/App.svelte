@@ -24,8 +24,9 @@
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
-    import { getToken, getSession, getAuthUrl, lastFm } from './lib/stores/lastfmAPI';
+    import { getToken, getSession, getAuthUrl, lastFm, lastFmConnected } from './lib/stores/lastfmAPI';
     import PopoutWindow from './lib/comp/PopoutWindow.svelte';
+    import { getRecord } from './lib/stores/stronghold';
 
     const contextSettings = new Settings();
     contextSettings.Menu.Class.push('context-menu');
@@ -55,6 +56,7 @@
     async function authenticateLastFm() {
         let url = await getAuthUrl();
         window.open(url, '_blank');
+        $lastFmConnected = true;
     }
 
     async function printSession() {
@@ -69,6 +71,8 @@
     }
 
     onMount(async () => {
+        let lastFmName = await getRecord('lastfm_name');
+        $lastFmConnected = lastFmName != '';
         setActiveTab('main', 'Albums');
         refreshLibrary();
         stopPlayback();

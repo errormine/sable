@@ -1,16 +1,20 @@
 import { get, writable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
+import { getSession, lastFm, lastFmConnected } from './lastfmAPI';
 
 export const currentSong = writable({
-    title: '',
-    artist: '',
-    album: '',
     file_path: '',
     cover_path: '',
+    title: '',
+    artist: '',
+    album_title: '',
+    album_artist: '',
+    track_number: 0,
     duration: 0 
 });
 export const songProgress = writable(0);
 export const isPlaying = writable(false);
+export const startedPlayingAt = writable(0);
 
 let intervalIndex;
 
@@ -18,10 +22,21 @@ export async function play(song) {
     if (!song.file_path) return;
 
     if (get(currentSong) != song) {
-        console.log('Playing new song: ', song.title);
         await invoke('play', { filePath: song.file_path });
         songProgress.set(0);
         currentSong.set(song);
+        startedPlayingAt.set(Math.floor(Date.now() / 1000));
+        if (get(lastFmConnected)) {
+            let session = await getSession();
+            lastFm.track.updateNowPlaying({
+                artist: song.album_artist,
+                track: song.title,
+                album: song.album_title,
+                trackNumber: song.track_number,
+                duration: song.duration,
+            }, session.key)
+            .then(res => console.log(res));
+        };
     }
 
     beginPlayBack();

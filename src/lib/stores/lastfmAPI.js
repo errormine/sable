@@ -2,6 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { fetch } from "@tauri-apps/plugin-http";
 import { getRecord, insertRecord } from "./stronghold";
 import LastFM from "tauri-lastfm";
+import { writable } from "svelte/store";
+
+export const lastFmConnected = writable(false);
 
 export const lastFm = new LastFM({
     apiKey: import.meta.env.VITE_LASTFM_API_KEY,

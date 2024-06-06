@@ -11,12 +11,16 @@
     import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
-    import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, songProgress, stopPlayback, togglePlayback } from '../stores/audioPlayer';
+    import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, songProgress, startedPlayingAt, stopPlayback, togglePlayback } from '../stores/audioPlayer';
     import { invoke } from '@tauri-apps/api/core';
+    import { getSession, lastFm, lastFmConnected } from '../stores/lastfmAPI';
 
     let progressBar;
     let volumeSlider;
     let userSeeking = false;
+    let totalDurationListened = 0;
+    let timeOfScrobble = 0;
+    let canScrobbleAgain = true;
     
     songProgress.subscribe(async (value) => {
         if (userSeeking || !progressBar) return;
@@ -24,6 +28,33 @@
         if (value >= $currentSong.duration) {
             stopPlayback();
             attemptPlayNext();
+        }
+
+        // Keep track of how much of the song has been listened to
+        // we should only scrobble if the user has listened to more than half of the song
+        if (!$lastFmConnected) return;
+        totalDurationListened += 1;
+        if (value <= timeOfScrobble) {
+            canScrobbleAgain = true;
+            totalDurationListened = 0;
+            timeOfScrobble = 0;
+        }
+        if (totalDurationListened >= $currentSong.duration / 2 && canScrobbleAgain) {
+            canScrobbleAgain = false;
+            timeOfScrobble = value;
+            let session = await getSession();
+            console.log(`Scrobbling song: ${$currentSong.title}`);
+            await lastFm.track.scrobble({
+                    // @ts-ignore
+                    artist: $currentSong.artist,
+                    track: $currentSong.title,
+                    album: $currentSong.album_title,
+                    albumArtist: $currentSong.album_artist,
+                    trackNumber: $currentSong.track_number,
+                    duration: $currentSong.duration,
+                    timestamp: $startedPlayingAt.toString()
+            }, session.key)
+            .then(result => console.log(result));
         }
     });
     

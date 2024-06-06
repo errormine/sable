@@ -33,8 +33,8 @@ importers:
         specifier: 2.0.0-beta.5
         version: 2.0.0-beta.5
       tauri-lastfm:
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^1.1.2
+        version: 1.1.2
       unplugin-icons:
         specifier: ^0.19.0
         version: 0.19.0
@@ -43,8 +43,8 @@ importers:
         specifier: ^1.1.18
         version: 1.1.18
       '@iconify-json/logos':
-        specifier: ^1.1.42
-        version: 1.1.42
+        specifier: ^1.1.43
+        version: 1.1.43
       '@iconify-json/solar':
         specifier: ^1.1.9
         version: 1.1.9
@@ -220,8 +220,8 @@ packages:
   '@iconify-json/ion@1.1.18':
     resolution: {integrity: sha512-iS4PRBySPnTqz4IyNGc62KtNs4mG9oh/mXyVXcMDluxGOz7W4MSnKeazz23x7aQLHAx/JhbFStl9YMSt2z3AQg==}
 
-  '@iconify-json/logos@1.1.42':
-    resolution: {integrity: sha512-/f+frtPm3m3Z30oy8Pk+QqRDkbmAiIaWGPl5CmsCXm15MVfvw9a/V/gD7WzdyuSGAZcFuQaqbHXj92y/n+2ifg==}
+  '@iconify-json/logos@1.1.43':
+    resolution: {integrity: sha512-UtvL1yDHUr9dl1Tqihh6K9m5dmbYKOYyLf3i9aKhymSW76QjOCGjpgQc0PQ4GJCAdU1cAMu+WO61TgPxdonrlg==}
 
   '@iconify-json/solar@1.1.9':
     resolution: {integrity: sha512-BcWzZqA02BiQduYizqU/J4v4RNs0MkjZUGpMbejpozH8YQSt3+S/LfV6zfVRonx/2DhXTVSqiLa1abDRAZtojQ==}
@@ -701,8 +701,8 @@ packages:
     resolution: {integrity: sha512-N7m1YnoXtRf5wya5Gyx3TWuTddI4nAyayyIWFojiWV5IayDYNV5i2mRp/7qNGol4DtxEYxljmrbgp1HM6hUbmQ==}
     engines: {node: '>=16'}
 
-  tauri-lastfm@1.1.0:
-    resolution: {integrity: sha512-NzbibHbwSO9VPLwkiXmxMWR5UJSfOMImTrDwovjgiATo7y7RZVcr2gLEEef2OB8dLHaqQfOaK75r48TaYzVbLg==}
+  tauri-lastfm@1.1.2:
+    resolution: {integrity: sha512-DKs8v9xhG7aEDk0NtlzOoESopuRBhCY7M8EcInUwiraaIckb3Va31YSEccxmHxYZD6Wgq5llzVCC5h0psoqB8A==}
 
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
@@ -882,7 +882,7 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/logos@1.1.42':
+  '@iconify-json/logos@1.1.43':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -1363,7 +1363,7 @@ snapshots:
       magic-string: 0.30.10
       periscopic: 3.1.0
 
-  tauri-lastfm@1.1.0: {}
+  tauri-lastfm@1.1.2: {}
 
   to-regex-range@5.0.1:
     dependencies:
