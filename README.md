@@ -1,8 +1,25 @@
-# Svelte + Vite
+# Sable Music Player
 
-This template should help get you started developing with Tauri and Svelte in Vite.
+A simple music player for playing and managing your music collection.
 
-## Recommended IDE Setup
+## Features
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+- Album Listing: Browse and view your music collection organized by albums.
+- Artist Profiles: Get detailed information about your favorite artists.
+- Metadata Editing: Edit and update the metadata of your music files.
 
+## Screenshots
+
+![Album view](/screenshots/Sable_LRSommqLPW.png)
+
+![Artist profile](/screenshots/Sable_xaIYhRJJf4.png)
+
+![Tag editing](/screenshots/Sable_37ZIjldtkq.png)
+
+## Contributing
+
+Contributions are welcome! If you have any suggestions or find any issues, please open an issue or submit a pull request.
+
+## License
+
+IDK
