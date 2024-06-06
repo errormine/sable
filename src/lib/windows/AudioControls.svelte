@@ -45,14 +45,13 @@
             let session = await getSession();
             console.log(`Scrobbling song: ${$currentSong.title}`);
             await lastFm.track.scrobble({
-                    // @ts-ignore
                     artist: $currentSong.artist,
                     track: $currentSong.title,
                     album: $currentSong.album_title,
                     albumArtist: $currentSong.album_artist,
                     trackNumber: $currentSong.track_number,
                     duration: $currentSong.duration,
-                    timestamp: $startedPlayingAt.toString()
+                    timestamp: $startedPlayingAt
             }, session.key)
             .then(result => console.log(result));
         }

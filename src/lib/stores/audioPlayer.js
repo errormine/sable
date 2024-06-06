@@ -29,9 +29,10 @@ export async function play(song) {
         if (get(lastFmConnected)) {
             let session = await getSession();
             lastFm.track.updateNowPlaying({
-                artist: song.album_artist,
+                artist: song.artist,
                 track: song.title,
                 album: song.album_title,
+                albumArtist: song.album_artist,
                 trackNumber: song.track_number,
                 duration: song.duration,
             }, session.key)
