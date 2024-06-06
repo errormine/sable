@@ -22,10 +22,10 @@
     <section class="artist">
         {#if $activeArtist}
             <header class="hero">
-                {#if artistInfo == null}
-                    <img src="/assets/placeholder/artist.png" alt="">
+                {#if artistInfo && artistInfo.thumbnail}
+                    <img src={artistInfo.thumbnail} alt={$activeArtist.name}>
                 {:else}
-                    <img src={artistInfo.thumbnail} alt="">
+                    <img src="/assets/placeholder/artist.png" alt={$activeArtist.name}>
                 {/if}
                 <section class="artist-info">
                     <h1 class="artist-name">{$activeArtist.name}</h1>
@@ -60,7 +60,7 @@
                 {#if activeTab == 'about'}
                     <section class="biography">
                         <h2>Biography</h2>
-                        {#if artistInfo.bio}
+                        {#if artistInfo && artistInfo.bio}
                             <p>{@html artistInfo.bio.content}</p>
                         {:else}
                             <p>No biography available</p>
