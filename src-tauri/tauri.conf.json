@@ -19,7 +19,7 @@
       "db/schema.sql"
     ]
   },
-  "productName": "sable",
+  "productName": "Sable Music Player",
   "version": "0.1.0",
   "identifier": "com.errormine.sable",
   "plugins": {},
@@ -35,7 +35,7 @@
     },
     "windows": [
       {
-        "title": "Sable",
+        "title": "Sable Music Player",
         "width": 1400,
         "height": 800
       }
