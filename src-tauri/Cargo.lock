@@ -3,6 +3,28 @@
 version = 3
 
 [[package]]
+name = "Sable"
+version = "0.1.0"
+dependencies = [
+ "audiotags",
+ "hex",
+ "jwalk",
+ "rodio",
+ "rusqlite",
+ "rust-argon2 2.1.0",
+ "serde",
+ "serde_json",
+ "symphonia",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-http",
+ "tauri-plugin-shell",
+ "tauri-plugin-stronghold",
+]
+
+[[package]]
 name = "addr2line"
 version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2736,28 +2758,6 @@ dependencies = [
  "serde",
  "thiserror",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "music-player"
-version = "0.0.0"
-dependencies = [
- "audiotags",
- "hex",
- "jwalk",
- "rodio",
- "rusqlite",
- "rust-argon2 2.1.0",
- "serde",
- "serde_json",
- "symphonia",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-http",
- "tauri-plugin-shell",
- "tauri-plugin-stronghold",
 ]
 
 [[package]]
