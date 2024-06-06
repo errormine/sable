@@ -24,7 +24,8 @@
     import TagEditor from './lib/comp/TagEditor.svelte';
     import { invokeWithToast } from './lib/utils';
     import Songs from './lib/windows/Songs.svelte';
-    import { getToken, getSession, getAuthUrl } from './lib/stores/lastfmAPI';
+    import { getToken, getSession, getAuthUrl, lastFm } from './lib/stores/lastfmAPI';
+    import PopoutWindow from './lib/comp/PopoutWindow.svelte';
 
     const contextSettings = new Settings();
     contextSettings.Menu.Class.push('context-menu');
@@ -52,23 +53,25 @@
     }
 
     async function authenticateLastFm() {
-        let token = await getToken();
-        let url = await getAuthUrl(token);
-        localStorage.setItem('lastfm_token', token);
-
+        let url = await getAuthUrl();
         window.open(url, '_blank');
     }
 
     async function printSession() {
-        let token = localStorage.getItem('lastfm_token');
-        let session = await getSession(token);
-        localStorage.removeItem('lastfm_token');
+        let session = await lastFm.auth.getSession();
         console.log(session);
+
+        let sessionKey = session.key;
+        await lastFm.track.updateNowPlaying({
+            artist: 'Test Artist',
+            track: 'Test Track',
+            duration: 90,
+        }, sessionKey);
     }
 
     async function lastFmPrint() {
         let token = await getToken();
-        let session = await getSession(token);
+        let session = await getSession();
         console.log(session);
     }
 
