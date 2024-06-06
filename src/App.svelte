@@ -16,8 +16,8 @@
     import { onMount, setContext } from 'svelte';
     import { stopPlayback } from './lib/stores/audioPlayer';
     import WindowStack from './lib/comp/WindowStack.svelte';
-    // import ArtistPage from './lib/windows/ArtistPage.svelte';
-    // import Artists from './lib/windows/Artists.svelte';
+    import ArtistPage from './lib/windows/ArtistPage.svelte';
+    import Artists from './lib/windows/Artists.svelte';
     import { refreshLibrary } from './lib/stores/songLibrary';
     import WindowGroup from './lib/comp/WindowGroup.svelte';
     import { setActiveTab } from './lib/stores/windowManager';
@@ -103,10 +103,10 @@
     {/if}
 </header>
 <main>
-    <!-- <Artists /> -->
+    <Artists />
     <WindowGroup name="main">
         <Albums />
-        <!-- <ArtistPage /> -->
+        <ArtistPage />
         <Songs />
     </WindowGroup>
     <WindowStack id="right">

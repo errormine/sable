@@ -1,10 +1,11 @@
 <script>
     import AlbumSelector from "../comp/AlbumSelector.svelte";
     import Window from "../comp/Window.svelte";
-    import { getArtistImage, getArtistInfo, getArtistTags } from "../stores/lastfmAPI";
+    import { getArtistImage, getArtistInfo, lastFm } from "../stores/lastfmAPI";
     import { activeArtist, loadAlbums } from "../stores/songLibrary";
     
     let albums;
+    let artistInfo;
     let activeTab = 'albums';
 
     activeArtist.subscribe(async (artist) => {
@@ -13,6 +14,7 @@
         }
 
         albums = await loadAlbums(artist.name);
+        artistInfo = await getArtistInfo(artist);
     });
 </script>
 
@@ -20,26 +22,22 @@
     <section class="artist">
         {#if $activeArtist}
             <header class="hero">
-                {#await getArtistImage($activeArtist.name)}
+                {#if artistInfo == null}
                     <img src="/assets/placeholder/artist.png" alt="">
-                {:then image}
-                    <img src={image} alt="">
-                {/await}
+                {:else}
+                    <img src={artistInfo.thumbnail} alt="">
+                {/if}
                 <section class="artist-info">
                     <h1 class="artist-name">{$activeArtist.name}</h1>
-                    {#await getArtistTags($activeArtist.name)}
-                        <p>Fetching tags...</p>
-                    {:then tags}
+                    {#if artistInfo != null}
                         <p class="tags">
-                            {#each tags as tag}
+                            {#each artistInfo.tags.tag as tag}
                                 <a href={tag.url} target="_blank" class="tag">
                                     {tag.name}
                                 </a>
                             {/each}
                         </p>
-                    {:catch error}
-                        <p>Could not fetch tags...</p>
-                    {/await}
+                    {/if}
                     <nav>
                         <ul>
                             <li class:active={activeTab == 'albums'}>
@@ -62,13 +60,11 @@
                 {#if activeTab == 'about'}
                     <section class="biography">
                         <h2>Biography</h2>
-                        {#await getArtistInfo($activeArtist.name)}
-                            <p>Fetching...</p>
-                        {:then lastFmInfo}
-                            <p>{@html lastFmInfo.bio.content}</p>
-                        {:catch error}
-                            <p>Could not find artist biography.</p>
-                        {/await}
+                        {#if artistInfo.bio}
+                            <p>{@html artistInfo.bio.content}</p>
+                        {:else}
+                            <p>No biography available</p>
+                        {/if}
                     </section>
                 {/if}
             </section>

@@ -6,7 +6,7 @@ import LastFM from "tauri-lastfm";
 export const lastFm = new LastFM({
     apiKey: import.meta.env.VITE_LASTFM_API_KEY,
     apiSecret: import.meta.env.VITE_LASTFM_API_SECRET,
-    verbose: true
+    verbose: import.meta.env.DEV
 });
 
 export function getAuthUrl(token) {
@@ -42,12 +42,27 @@ export async function getSession() {
 
 async function download(url, dest) {
     const response = await fetch(url);
-
     await invoke("write_file", { path: dest, contents: response.json() });
+}
+
+export async function getArtistInfo(artist) {
+    let cachedInfo = localStorage.getItem(artist.name);
+
+    if (cachedInfo) {
+        return JSON.parse(cachedInfo);
+    }
+
+    let artistInfo = await lastFm.artist.getInfo({ artist: artist.name });
+    let thumbnail = await getArtistImageLastFm(artistInfo.artist);
+
+    localStorage.setItem(artist.name, JSON.stringify({ ...artistInfo.artist, thumbnail }));
+
+    return { ...artistInfo.artist, thumbnail };
 }
 
 async function getArtistImageLastFm(artist) {
     if (!artist || !artist.url) return null;
+    console.log(`Fetching image for ${artist.name}`);
     
     let lastFmImage = fetch(artist.url)
         .then(res => {
@@ -85,11 +100,9 @@ async function getArtistImageDeezer(artist) {
         });
 }
 
-export async function getArtistImage(name) {
-    let artistInfo = await lastFm.artist.getInfo({ artist: name });
-
+export async function getArtistImage(artist) {
+    let artistInfo = await getArtistInfo(artist);
     return artistInfo.thumbnail;
-
 }
 
 export async function getAlbumId(title, artist) {

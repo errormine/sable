@@ -1,12 +1,10 @@
 <script>
-    import { invoke } from "@tauri-apps/api/core";
-    import { onMount } from "svelte";
     import Window from "../comp/Window.svelte";
     import { activeArtist, artists } from "../stores/songLibrary";
     import ContextMenu, { Item, Divider } from "svelte-contextmenu";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
-    import { getArtistImage, getArtistInfo, retrieveFromCache } from "../stores/lastfmAPI";
+    import { lastFm, getArtistInfo } from "../stores/lastfmAPI";
 
     let artistsContextMenu;
     let showAlbums = true;
@@ -24,20 +22,25 @@
     let artistInfos = {};
 
     artists.subscribe(async (artists) => {
+        if (!artists) return;
         for (let artist of artists) {
-            let cached = await retrieveFromCache(artist.name);
-            
-            if (cached) {
-                artistInfos[artist.name] = cached;
+            let cachedInfo = localStorage.getItem(artist.name);
+
+            if (cachedInfo) {
+                if (import.meta.env.DEV) {
+                    console.log("Using cached info for " + artist.name);
+                }
+                artistInfos[artist.name] = JSON.parse(cachedInfo);
                 continue;
             }
 
             // Wait a bit to avoid rate limiting, results are cached after first request
             await new Promise((resolve) => setTimeout(resolve, 500));
-            await getArtistInfo(artist.name).then((info) => {
-                artistInfos[artist.name] = info;
-                artistInfos = artistInfos;
-            });
+            await getArtistInfo(artist)
+                .then((info) => {
+                    artistInfos[artist.name] = info;
+                    artistInfos = artistInfos;
+                });
         }
     });
 </script>
