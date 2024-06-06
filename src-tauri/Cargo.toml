@@ -1,7 +1,7 @@
 [package]
 name = "Sable"
 version = "0.1.0"
-description = "A music player for the bold."
+description = "Sable"
 authors = ["Andrei Neacsu"]
 edition = "2021"
 
