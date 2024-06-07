@@ -294,7 +294,8 @@ fieldset {
 progress {
     -webkit-appearance: none;
     overflow: hidden;
-    width: 100%;
+    min-width: 18rem;
+    display: inline-block;
 }
 
 ::-webkit-progress-value {

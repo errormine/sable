@@ -171,7 +171,7 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
                 seconds
             }
         }
-        None => audio::get_duration(&file_path),
+        None => audio::get_duration(&file_path)?,
     };
 
     let year = tag.year().unwrap_or(0);
@@ -274,16 +274,16 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
         match get_song_metadata(&song_path) {
             Ok(metadata) => {
                 if current_album.title != metadata.album_title
-                    || current_album.artist != metadata.album_artist
+                || current_album.artist != metadata.album_artist
                 {
                     if !current_album.songs.is_empty() {
                         albums.insert(current_album.title.clone(), current_album.clone());
                     }
-
+                    
                     let location_on_disk = metadata.parent_dir.clone();
                     let location_path = Path::new(&location_on_disk);
                     let cover_path = find_cover_art(&location_path, &metadata.album_title);
-
+                    
                     current_album = AlbumMetadata {
                         location_on_disk,
                         cover_path,
@@ -296,19 +296,13 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
                 }
                 current_album.songs.push(metadata);
                 successful += 1;
+                app.emit("song_registered", crate::Payload { message: song_path.to_string_lossy().to_string() }).unwrap();
             }
             Err(_) => {
                 failed += 1;
                 // TODO: keep track of which files failed
             }
         }
-        app.emit(
-            "songs_registered",
-            crate::Payload {
-                message: successful.to_string(),
-            },
-        )
-        .unwrap();
     }
 
     commit_to_db(albums, app).map_err(|e| e.to_string())?;

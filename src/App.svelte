@@ -41,6 +41,7 @@
     let loadingSongs = false;
     let songsTotal = 0;
     let songsRegistered = 0;
+    let justRegistered = '';
 
     async function openFile() {
         const directory = await open({ directory: true, multiple: false });
@@ -81,8 +82,9 @@
             songsTotal = event.payload.message;
         });
 
-        await listen('songs_registered', (event) => {
-            songsRegistered = event.payload.message;
+        await listen('song_registered', (event) => {
+            songsRegistered += 1;
+            justRegistered = event.payload.message;
         });
     })
 </script>
@@ -98,7 +100,11 @@
 
 <header class="menubar">
     {#if loadingSongs}
-        <p>Registering songs... <progress max={songsTotal} value={songsRegistered}></progress></p>
+        <section class="menubar-registering no-wrap">
+            <p>Registering songs: </p>
+            <progress max={songsTotal} value={songsRegistered}></progress>
+            <p class="no-wrap">{justRegistered}</p>
+        </section>
     {:else}
         <button on:click={(e) => fileContextMenu.show(e)}>File</button>
         <button>Edit</button>
@@ -136,6 +142,14 @@
             color: var(--clr-gray-9);
             background: var(--clr-gray-4);
         }
+    }
+
+    .menubar-registering {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: 0 1rem;
     }
 
     main {
