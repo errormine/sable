@@ -1,11 +1,13 @@
 <script>
     import { onMount } from "svelte";
-    import { songQueue, currentSongIndex, jumpToSong } from "../stores/audioPlayer";
+    import ContextMenu, { Item } from "svelte-contextmenu";
+    import { songQueue, currentSongIndex, jumpToSong, loopQueue } from "../stores/audioPlayer";
     import { sec2time } from "../utils";
     import Window from "../comp/Window.svelte";
     import AlbumCover from "../comp/AlbumCover.svelte";
     import CardListItem from "../comp/CardListItem.svelte";
 
+    let songQueueContextMenu;
     let queue;
     let queueList;
 
@@ -30,7 +32,12 @@
     });
 </script>
 
-<Window title="SONG QUEUE">
+<ContextMenu bind:this={songQueueContextMenu}>
+    <Item on:click={() => $loopQueue = !$loopQueue}>
+        {$loopQueue ? "✓" : " "} Loop Queue
+    </Item>
+</ContextMenu>
+<Window title="Song Queue" contextMenu={songQueueContextMenu}>
     <section class="song-queue" bind:this={queue}>
         {#if $songQueue.length > 0}
             <ol bind:this={queueList} class="queue-list">

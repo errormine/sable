@@ -14,7 +14,7 @@
     import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
-    import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, songProgress, startedPlayingAt, stopPlayback, togglePlayback } from '../stores/audioPlayer';
+    import { attemptPlayNext, attemptPlayPrevious, currentSong, isPlaying, loopMode, shuffleMode, songProgress, startedPlayingAt, stopPlayback, toggleLoopMode, togglePlayback, toggleShuffleMode } from '../stores/audioPlayer';
     import { invoke } from '@tauri-apps/api/core';
     import { getSession, lastFm, lastFmConnected } from '../stores/lastfmAPI';
 
@@ -136,7 +136,7 @@
         <IconButton on:click={attemptPlayPrevious}>
             <IonIosSkipBackward />
         </IconButton>
-        <IconButton on:click={togglePlayback}>
+        <IconButton on:click={togglePlayback} size="2.5rem">
             {#if $isPlaying}
                 <IonIosPause/>
             {:else}
@@ -155,14 +155,14 @@
     </section>
 
     <section id="secondary-controls">
-        <IconButton>
+        <IconButton on:click={toggleShuffleMode} size="2.5rem" active={$shuffleMode}>
             <IonIosShuffle/>
         </IconButton>
-        <IconButton>
+        <IconButton on:click={toggleLoopMode} size="2.5rem" active={$loopMode}>
             <IonIosRepeat/>
         </IconButton>
         {#if volumeSlider != null && volumeSlider.input.value != null}
-            <IconButton on:click={toggleMute} title={volumeSlider.input.value}>
+            <IconButton on:click={toggleMute} title={volumeSlider.input.value} size="2.5rem">
                 {#if volumeIcon == 'mute'}
                     <IonVolumeMute/>
                 {:else if volumeIcon == 'low'}
@@ -184,7 +184,7 @@
         width: 100%;
         align-content: center;
         justify-content: space-between;
-        padding: 0.5rem 1.5rem;
+        padding: 0 1.5rem;
         height: var(--controls-height);
         background: var(--clr-gray-1);
         gap: 1rem;
@@ -193,7 +193,7 @@
         & > section {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.5rem;
         }
     }
 

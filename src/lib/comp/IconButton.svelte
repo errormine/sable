@@ -1,9 +1,11 @@
 <script>
     export let size = '2rem';
     export let color = 'inherit';
+    export let shape = 'circle';
+    export let active = false;
 </script>
 
-<button on:click class="icon-button" style="width: {size}; height: {size}; color: {color};" {...$$restProps}>
+<button on:click class="icon-button shape-{shape}" class:active={active} style="width: {size}; height: {size}; color: {color};" {...$$restProps}>
     <slot />
 </button>
 
@@ -22,6 +24,15 @@
     
         &:hover {
             background: var(--clr-gray-4);
+        }
+
+        &.active {
+            background: var(--clr-gray-5);
+        }
+
+        &.shape-circle {
+            padding: 4px;
+            border-radius: 50%;
         }
     }
 </style>

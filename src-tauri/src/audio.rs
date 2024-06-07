@@ -24,8 +24,9 @@ pub fn get_duration(file_path: &str) -> Result<u64, Box<dyn Error>> {
 #[tauri::command]
 pub fn play(file_path: String, state: tauri::State<MusicPlayer>) -> Result<String, String> {
     let source = get_source(file_path.as_str()).map_err(|e| e.to_string())?;
-    state.sink.stop();
+    state.sink.clear();
     state.sink.append(source);
+    state.sink.play();
     Ok("success".to_string())
 }
 

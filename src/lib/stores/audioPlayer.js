@@ -1,6 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
 import { getSession, lastFm, lastFmConnected } from './lastfmAPI';
+import { addToast } from './notifications';
 
 export const currentSong = writable({
     file_path: '',
@@ -21,24 +22,33 @@ let intervalIndex;
 export async function play(song) {
     if (!song.file_path) return;
 
-    if (get(currentSong) != song) {
-        await invoke('play', { filePath: song.file_path });
-        songProgress.set(0);
-        currentSong.set(song);
-        startedPlayingAt.set(Math.floor(Date.now() / 1000));
-        if (get(lastFmConnected)) {
-            let session = await getSession();
-            lastFm.track.updateNowPlaying({
-                artist: song.artist,
-                track: song.title,
-                album: song.album_title,
-                albumArtist: song.album_artist,
-                trackNumber: song.track_number,
-                duration: song.duration,
-            }, session.key)
-            .then(res => console.log(res));
-        };
-    }
+    await invoke('play', { filePath: song.file_path })
+        .then(async () => {;
+            songProgress.set(0);
+            currentSong.set(song);
+            startedPlayingAt.set(Math.floor(Date.now() / 1000));
+            if (get(lastFmConnected)) {
+                let session = await getSession();
+                lastFm.track.updateNowPlaying({
+                    artist: song.artist,
+                    track: song.title,
+                    album: song.album_title,
+                    albumArtist: song.album_artist,
+                    trackNumber: song.track_number,
+                    duration: song.duration,
+                }, session.key)
+                .then(res => console.log(res));
+            };
+        })
+        .catch(err => {
+            console.error(err);
+            addToast({
+                message: 'Failed to play song',
+                type: 'error',
+                timeout: 5000,
+                dismissable: true
+            });
+        });
 
     beginPlayBack();
 }
@@ -73,6 +83,18 @@ export async function stopPlayback() {
 export const songQueue = writable([]);
 export const currentSongIndex = writable(0);
 
+export function getRandomUnplayedIndex() {
+    let queue = get(songQueue);
+    let currentIndex = get(currentSongIndex);
+    let randomIndex = Math.floor(Math.random() * queue.length);
+
+    while (randomIndex == currentIndex) {
+        randomIndex = Math.floor(Math.random() * queue.length);
+    }
+
+    return randomIndex;
+}
+
 export function setQueue(songs, offset = 0) {
     songQueue.set(songs);
     currentSongIndex.set(offset);
@@ -91,7 +113,21 @@ export async function addToQueue(songs) {
 }
 
 export async function attemptPlayNext() {
-    currentSongIndex.update((n) => n + 1);
+    if (get(loopMode)) {
+        let currentSong = get(songQueue)[get(currentSongIndex)];
+        play(currentSong);
+        return;
+    }
+
+    if (get(shuffleMode)) {
+        let randomIndex = getRandomUnplayedIndex();
+        currentSongIndex.update((n) => randomIndex);
+    } else {
+        currentSongIndex.update((n) => {
+            if (n + 1 >= get(songQueue).length && get(loopQueue)) return 0;
+            return n + 1;
+        });
+    }
     let nextSong = get(songQueue)[get(currentSongIndex)];
     if (!nextSong) return;
     play(nextSong);
@@ -112,6 +148,7 @@ export async function jumpToSong(index) {
 }
 
 export const loopMode = writable(false);
+export const loopQueue = writable(false);
 export const shuffleMode = writable(false);
 
 export async function toggleLoopMode() {
