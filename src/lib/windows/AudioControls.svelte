@@ -8,6 +8,9 @@
     import IonIosSkipforward from 'virtual:icons/ion/ios-skipforward';
     import IonIosShuffle from 'virtual:icons/ion/ios-shuffle';
     import IonIosRepeat from 'virtual:icons/ion/ios-repeat';
+    import IonVolumeMute from 'virtual:icons/ion/volume-mute';
+    import IonVolumeLow from 'virtual:icons/ion/volume-low';
+    import IonVolumeMedium from 'virtual:icons/ion/volume-medium';
     import IonVolumeHigh from 'virtual:icons/ion/volume-high';
     import IconButton from '../comp/IconButton.svelte';
     import Slider from '../comp/Slider.svelte';
@@ -16,11 +19,38 @@
     import { getSession, lastFm, lastFmConnected } from '../stores/lastfmAPI';
 
     let progressBar;
+    let volumeIcon = 'medium';
     let volumeSlider;
+    let prevVolume;
     let userSeeking = false;
     let totalDurationListened = 0;
     let timeOfScrobble = 0;
     let canScrobbleAgain = true;
+
+    async function toggleMute() {
+        if (volumeSlider.input.valueAsNumber != 0) prevVolume = volumeSlider.input.valueAsNumber;
+        let newVolume = volumeSlider.input.valueAsNumber == 0 ? prevVolume : 0;
+        volumeSlider.setValue(newVolume);
+        updateVolumeIcon(newVolume);
+        await invoke('set_volume', { volume: Number(newVolume) });
+    }
+
+    function updateVolumeIcon(volume) {
+        switch (true) {
+            case volume == 0:
+                volumeIcon = 'mute';
+                break;
+            case volume < 30:
+                volumeIcon = 'low';
+                break;
+            case volume < 60:
+                volumeIcon = 'medium';
+                break;
+            default:
+                volumeIcon = 'high';
+                break;
+        }
+    }
     
     songProgress.subscribe(async (value) => {
         if (userSeeking || !progressBar) return;
@@ -87,12 +117,16 @@
         volumeSlider.input.addEventListener('input', async (event) => {
             let newVolume = event.target.value;
             if (!newVolume) return;
+            updateVolumeIcon(newVolume);
             await invoke('set_volume', { volume: Number(newVolume) });
         });
-
+        
         volumeSlider.input.addEventListener('change', async (event) => {
             let newVolume = event.target.value;
             if (!newVolume) return;
+            if (newVolume == 0) {
+                prevVolume = 50;
+            }
         });
     });
 </script>
@@ -127,9 +161,19 @@
         <IconButton>
             <IonIosRepeat/>
         </IconButton>
-        <IconButton>
-            <IonVolumeHigh/>
-        </IconButton>
+        {#if volumeSlider != null && volumeSlider.input.value != null}
+            <IconButton on:click={toggleMute} title={volumeSlider.input.value}>
+                {#if volumeIcon == 'mute'}
+                    <IonVolumeMute/>
+                {:else if volumeIcon == 'low'}
+                    <IonVolumeLow/>
+                {:else if volumeIcon == 'medium'}
+                    <IonVolumeMedium/>
+                {:else}
+                    <IonVolumeHigh/>
+                {/if}
+            </IconButton>
+        {/if}
         <Slider bind:this={volumeSlider} width="6rem" color="var(--clr-gray-9)" name="volume-slider" id="volume-slider" min={0} max={100} value={80} />
     </section>
 </footer>

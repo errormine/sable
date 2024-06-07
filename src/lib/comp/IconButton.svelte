@@ -3,7 +3,7 @@
     export let color = 'inherit';
 </script>
 
-<button on:click class="icon-button" style="width: {size}; height: {size}; color: {color};">
+<button on:click class="icon-button" style="width: {size}; height: {size}; color: {color};" {...$$restProps}>
     <slot />
 </button>
 
