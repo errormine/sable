@@ -95,7 +95,9 @@
     <Item on:click={openFile}>Add Folder...</Item>
     <Item on:click={refreshLibrary}>Refresh Library</Item>
     <Item on:click={authenticateLastFm}>Link Last.fm Account</Item>
-    <Item on:click={printSession}>Print Last.fm Session</Item>
+    {#if import.meta.env.DEV}
+        <Item on:click={printSession}>Print Last.fm Session</Item>
+    {/if}
 </ContextMenu>
 
 <header class="menubar">
