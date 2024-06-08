@@ -119,7 +119,6 @@
     <WindowGroup name="main">
         <Albums />
         <ArtistPage />
-        <Songs />
     </WindowGroup>
     <WindowStack id="right">
         <SongQueue />
