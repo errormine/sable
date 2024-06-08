@@ -4,11 +4,19 @@ import { get, writable } from "svelte/store";
 export const albums = writable([]);
 export const artists = writable([]);
 
-export async function loadAlbums(artist) {
-    return await invoke('get_albums_by_artist', { artist: artist })
+export async function loadAlbums(name) {
+    return await invoke('get_albums_by_artist', { artist: name })
         .then(albumsJSON => {
             return JSON.parse(albumsJSON);
         });
+}
+
+export async function loadAllAlbums() {
+    return await invoke('get_all_albums')
+        .then(albumsJSON => {
+            return JSON.parse(albumsJSON);
+        });
+
 }
 
 export async function loadSongs(album) {
@@ -36,8 +44,6 @@ export async function refreshLibrary() {
 }
 
 export const activeArtist = writable(null);
-
-
 export const openAlbum = writable(null);
 export const songList = writable([]);
 

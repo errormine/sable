@@ -47,14 +47,18 @@
             text-transform: uppercase;
             color: var(--clr-gray-6);
             height: var(--window-title-height);
-            padding-top: 0.2rem;
         }
     
         & > header > .title {
             height: 100%;
-            display: inline;
-            vertical-align: middle;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
             flex: 1;
+        }
+
+        & > header button {
+            padding-top: calc(var(--window-title-height) / 8);
         }
     }
 

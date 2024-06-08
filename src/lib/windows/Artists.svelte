@@ -1,6 +1,6 @@
 <script>
     import Window from "../comp/Window.svelte";
-    import { activeArtist, artists } from "../stores/songLibrary";
+    import { activeArtist, albums, artists } from "../stores/songLibrary";
     import ContextMenu, { Item, Divider } from "svelte-contextmenu";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
@@ -17,6 +17,11 @@
         }
         $activeArtist = artist;
         setActiveTab("main", "Artist");
+    }
+
+    function clearActiveArtist() {
+        $activeArtist = null;
+        setActiveTab("main", "Albums");
     }
 
     let artistInfos = {};
@@ -54,6 +59,16 @@
     <section class="artists">
         {#if $artists}
             <ul class="artist-list">
+                <li>
+                    <CardListItem 
+                        title="All Artists" 
+                        subtitle={showAlbums ? $albums.length + " albums" : $artists.reduce((acc, artist) => acc + artist.song_count, 0) + " tracks"}
+                        highlighted={!$activeArtist}
+                        onClick={clearActiveArtist}
+                            >
+                        <img src="/assets/placeholder/artist.png" alt="All artists" />
+                    </CardListItem>
+                </li>
                 {#each $artists as artist (artist.name)}
                     <CardListItem 
                         title={artist.name} 
