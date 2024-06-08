@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { get, writable } from "svelte/store";
+import { setActiveTab } from "./windowManager";
 
 export const albums = writable([]);
 export const artists = writable([]);
@@ -49,4 +50,10 @@ export const songList = writable([]);
 
 export async function refreshSongList(album) {
     songList.set(await loadSongs(album));
+}
+
+export async function clearActiveArtist() {
+    activeArtist.set(null);
+    openAlbum.set(null);
+    setActiveTab('main', 'Albums');
 }

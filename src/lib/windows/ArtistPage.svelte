@@ -1,8 +1,10 @@
 <script>
+    import IonIosClose from "virtual:icons/ion/ios-close";
     import AlbumSelector from "../comp/AlbumSelector.svelte";
+    import IconButton from "../comp/IconButton.svelte";
     import Window from "../comp/Window.svelte";
     import { getArtistImage, getArtistInfo, lastFm } from "../stores/lastfmAPI";
-    import { activeArtist, loadAlbums } from "../stores/songLibrary";
+    import { activeArtist, clearActiveArtist, loadAlbums, openAlbum } from "../stores/songLibrary";
     
     let albums;
     let artistInfo;
@@ -52,6 +54,9 @@
                         </ul>
                     </nav>
                 </section>
+                <IconButton on:click={clearActiveArtist} >
+                    <IonIosClose />
+                </IconButton>
             </header>
             <section class="content">
                 {#if activeTab == 'albums' && albums}
@@ -84,7 +89,7 @@
 
     .hero {
         display: grid;
-        grid-template-columns: 12rem 1fr;
+        grid-template-columns: 12rem 1fr 2rem;
         gap: 1rem;
         margin-bottom: 1rem;
 

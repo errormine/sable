@@ -1,6 +1,6 @@
 <script>
     import Window from "../comp/Window.svelte";
-    import { activeArtist, albums, artists, openAlbum } from "../stores/songLibrary";
+    import { activeArtist, albums, artists, clearActiveArtist, openAlbum } from "../stores/songLibrary";
     import ContextMenu, { Item, Divider } from "svelte-contextmenu";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
@@ -18,12 +18,6 @@
         }
         $activeArtist = artist;
         setActiveTab("main", "Artist");
-    }
-
-    function clearActiveArtist() {
-        $activeArtist = null;
-        $openAlbum = null;
-        setActiveTab("main", "Albums");
     }
 
     let artistInfos = {};
