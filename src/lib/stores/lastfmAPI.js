@@ -3,6 +3,8 @@ import { fetch } from "@tauri-apps/plugin-http";
 import { getRecord, insertRecord } from "./stronghold";
 import LastFM from "tauri-lastfm";
 import { writable } from "svelte/store";
+import { appDataDir, sep } from "@tauri-apps/api/path";
+import { invokeWithToast } from "../utils";
 
 export const lastFmConnected = writable(false);
 
@@ -43,11 +45,6 @@ export async function getSession() {
     return { name, key, subscriber };
 }
 
-async function download(url, dest) {
-    const response = await fetch(url);
-    await invoke("write_file", { path: dest, contents: response.json() });
-}
-
 export async function getArtistInfo(artist) {
     let cachedInfo = localStorage.getItem(artist.name);
 
@@ -56,11 +53,61 @@ export async function getArtistInfo(artist) {
     }
 
     let artistInfo = await lastFm.artist.getInfo({ artist: artist.name });
+    localStorage.setItem(artist.name, JSON.stringify(artistInfo.artist));
+
     let thumbnail = await getArtistImageLastFm(artistInfo.artist);
+    if (thumbnail) {
+        setNewPortrait(artist.name, thumbnail);
+    }
 
-    localStorage.setItem(artist.name, JSON.stringify({ ...artistInfo.artist, thumbnail }));
+    return localStorage.getItem(artist.name);
+}
 
-    return { ...artistInfo.artist, thumbnail };
+export async function setNewPortrait(name, url) {
+    let dest = await appDataDir();
+    let seperator = sep();
+    dest += `${seperator}portraits`;
+    let fileName = url.split("/").pop() + ".jpg";
+    
+    await invokeWithToast("download", { url, dest, name: fileName });
+    
+    let artist = JSON.parse(localStorage.getItem(name));
+    let finalPath = dest + `${seperator}${fileName}`;
+    artist.thumbnail = finalPath;
+    localStorage.setItem(name, JSON.stringify(artist));
+}
+
+export async function getArtistImages(artist) {
+    if (!artist || !artist.url) return null;
+    console.log(`Fetching images for ${artist.name}`);
+    
+    return fetch(artist.url)
+        .then(res => {
+            return res.text();
+        }).then(data => {
+            let parser = new DOMParser();
+            let doc = parser.parseFromString(data, 'text/html');
+            let images = doc.querySelectorAll('.image-list-item');
+            if (images.length === 0) {
+                return null;
+            }
+
+            let sources = [];
+
+            images.forEach(img => {
+                let source = img.querySelector('img').src;
+
+                if (!sources.includes(source)) {
+                    sources.push(source);
+                }
+            });
+
+            if (!sources || sources.length === 0) {
+                return null;
+            }
+
+            return sources;
+        });
 }
 
 async function getArtistImageLastFm(artist) {
@@ -135,5 +182,5 @@ export async function downloadCoverImage(album) {
     let albumImage = await getAlbumImage(album.title, album.artist);
     let dest = album.location_on_disk + "/Cover.jpg";
 
-    await download(albumImage, dest);
+    // await download(albumImage, dest);
 }

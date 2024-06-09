@@ -5,6 +5,7 @@
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
     import { lastFm, getArtistInfo } from "../stores/lastfmAPI";
+    import { convertFileSrc } from "@tauri-apps/api/core";
 
     let artistsContextMenu;
     let showAlbums = true;
@@ -22,6 +23,7 @@
 
     let artistInfos = {};
 
+    // Artist info loading needs to be refactored so I can update the thurmbnails when you update them from ArtistPage.svelte
     artists.subscribe(async (artists) => {
         if (!artists) return;
         for (let artist of artists) {
@@ -73,7 +75,7 @@
                         onClick={() => toggleArtistPage(artist)}
                             >
                         {#if artistInfos[artist.name] && artistInfos[artist.name].thumbnail}
-                            <img src={artistInfos[artist.name].thumbnail} alt={artist.name} />
+                            <img src={convertFileSrc(artistInfos[artist.name].thumbnail)} alt={artist.name} />
                         {:else}
                             <img src="/assets/placeholder/artist.png" alt={artist.name} />
                         {/if}

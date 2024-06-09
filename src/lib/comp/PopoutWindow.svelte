@@ -18,6 +18,7 @@
 
 <style>
     dialog {
+        font-family: "Nimbus", sans-serif;
         position: absolute;
         inset: 0;
         margin: auto;
@@ -46,7 +47,6 @@
         }
     
         & > .title-bar > * {
-            font-family: "Nimbus", sans-serif;
             font-weight: normal;
             line-height: 1;
             margin: 0;

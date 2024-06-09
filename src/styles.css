@@ -283,13 +283,6 @@ fieldset {
     margin-bottom: 2rem;
 }
 
-/* Scrollbars */
-/* width */
-::-webkit-scrollbar {
-    width: 5px;
-}
-
-
 /* Slider and Progress */
 progress {
     -webkit-appearance: none;
@@ -308,6 +301,12 @@ progress {
     background: var(--clr-gray-3);
     border: 1px solid var(--clr-gray-6);
     border-radius: 10px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
 }
 
 /* Track */

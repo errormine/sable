@@ -6,7 +6,8 @@ mod db;
 
 use rusqlite::Connection;
 use tauri::Manager;
-use std::fs;
+use tauri_plugin_http::reqwest;
+use std::{fs, path::Path};
 
 // https://tauri.app/v1/guides/features/events/
 #[derive(Clone, serde::Serialize)]
@@ -16,6 +17,22 @@ pub struct Payload {
 
 struct MusicPlayer {
     sink: rodio::Sink,
+}
+
+#[tauri::command]
+async fn download(url: String, dest: String, name: String) -> Result<String, String> {
+    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+    let dir = Path::new(&dest);
+    let path = dir.join(name);
+
+    if !dir.exists() {
+        fs::create_dir_all(&dest).map_err(|e| e.to_string())?
+    }
+
+    fs::write(path, bytes).map_err(|e| e.to_string())?;
+
+    Ok("OK".into())
 }
 
 fn main() {
@@ -62,7 +79,7 @@ fn init_audio_player() {
             sink: rodio::Sink::try_new(&stream_handle).unwrap(),
         })
         .invoke_handler(tauri::generate_handler![
-            write_file,
+            download,
             audio::play,
             audio::add_to_queue,
             audio::pause,
@@ -84,10 +101,4 @@ fn init_audio_player() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn write_file(path: String, contents: Vec<u8>) {
-    println!("Writing file to: {}", path);
-    fs::write(path, contents);
 }

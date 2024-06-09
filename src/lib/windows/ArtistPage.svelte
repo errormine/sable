@@ -3,8 +3,11 @@
     import AlbumSelector from "../comp/AlbumSelector.svelte";
     import IconButton from "../comp/IconButton.svelte";
     import Window from "../comp/Window.svelte";
-    import { getArtistImage, getArtistInfo, lastFm } from "../stores/lastfmAPI";
+    import ContextMenu, { Item } from "svelte-contextmenu";
+    import { getArtistImage, getArtistImages, getArtistInfo, lastFm, setNewPortrait } from "../stores/lastfmAPI";
     import { activeArtist, clearActiveArtist, loadAlbums, openAlbum } from "../stores/songLibrary";
+    import PopoutWindow from "../comp/PopoutWindow.svelte";
+    import { convertFileSrc } from "@tauri-apps/api/core";
     
     let albums;
     let artistInfo;
@@ -18,16 +21,59 @@
         albums = await loadAlbums(artist.name);
         artistInfo = await getArtistInfo(artist);
     });
+
+    let portraitDialog;
+    let portraitContextMenu;
+    let portraitSources = [];
+    let selectedNewPortrait;
+
+    async function showPortraitSelection() {
+        let artist = await getArtistInfo($activeArtist);
+        portraitSources = await getArtistImages(artist);
+        portraitDialog.showModal();
+    }
+
+    async function updatePortrait(src) {
+        setNewPortrait($activeArtist.name, src)
+            .then(async () => {
+                artistInfo = await getArtistInfo($activeArtist);
+                portraitDialog.close();
+            });
+    }
 </script>
 
+<PopoutWindow bind:dialog={portraitDialog} title="Select Portrait">
+    {#if portraitSources != null}
+        <form class="portrait-selector">
+            <section class="portraits-wrapper">
+                <section class="portraits">
+                    {#each portraitSources as src}
+                        <button type="button" on:click={() => selectedNewPortrait = src} class:active={selectedNewPortrait == src}>
+                            <img {src} alt={$activeArtist.name} />
+                        </button>
+                    {/each}
+                </section>
+            </section>
+            <fieldset class="footer">
+                <button type="button" on:click={() => updatePortrait(selectedNewPortrait)}>Set Portrait</button>
+            </fieldset>
+        </form>
+    {:else}
+        <p>No portraits found</p>
+    {/if}
+</PopoutWindow>
 <Window title="Artist">
     <section class="artist">
         {#if $activeArtist}
             <header class="hero">
-                {#if artistInfo && artistInfo.thumbnail}
-                    <img src={artistInfo.thumbnail} alt={$activeArtist.name}>
+                <ContextMenu bind:this={portraitContextMenu}>
+                    <Item on:click={showPortraitSelection}>Download New Portrait</Item>
+                    <Item>Open on Last.fm</Item>
+                </ContextMenu>
+                {#if artistInfo != null && artistInfo.thumbnail}
+                    <img src={convertFileSrc(artistInfo.thumbnail)} alt={$activeArtist.name} on:contextmenu={(e) => portraitContextMenu.show(e)}>
                 {:else}
-                    <img src="/assets/placeholder/artist.png" alt={$activeArtist.name}>
+                    <img src="/assets/placeholder/artist.png" alt={$activeArtist.name} on:contextmenu={(e) => portraitContextMenu.show(e)}>
                 {/if}
                 <section class="artist-info">
                     <h1 class="artist-name">{$activeArtist.name}</h1>
@@ -80,6 +126,42 @@
 </Window>
 
 <style>
+    .portrait-selector {
+        max-width: 50vw;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        & .portraits-wrapper {
+            overflow-x: auto;
+            padding: 0.5rem;
+        }
+        
+        & .portraits {
+            white-space: nowrap;
+            width: max-content;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        & img {
+            display: block;
+        }
+
+        & button {
+            overflow: hidden;
+            border-radius: 0.5rem;
+            display: inline-block;
+        }
+
+        & button.active {
+            background: var(--clr-gray-3);
+            color: var(--clr-gray-9);
+            outline: 1px solid var(--clr-gray-7);
+        }
+    }
+    
     .artist {
         display: grid;
         padding: 1rem;
@@ -93,7 +175,7 @@
         gap: 1rem;
         margin-bottom: 1rem;
 
-        & img {
+        & > img {
             border-radius: 50%;
         }
 

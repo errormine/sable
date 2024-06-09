@@ -11,6 +11,7 @@ export function sec2time(seconds) {
 export async function invokeWithToast(func, args) {
     await invoke(func, args)
         .then(result => {
+            if (result == 'OK') return;
             addToast({
                 message: result,
                 type: 'success',

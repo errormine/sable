@@ -42,6 +42,9 @@
           "url": "https://ws.audioscrobbler.com/2.0/*"
         },
         {
+          "url": "https://lastfm.freetls.fastly.net/*"
+        },
+        {
           "url": "https://api.deezer.com/*"
         },
         {
