@@ -71,7 +71,7 @@ impl Clone for SongMetadata {
 }
 
 fn get_db_connection(app: tauri::AppHandle) -> Result<Connection, Box<dyn Error>> {
-    let local_data_dir = app.path().app_local_data_dir()?;
+    let local_data_dir = app.path().app_data_dir()?;
     let db_path = local_data_dir.join("music.db");
 
     Ok(Connection::open(db_path)?)
@@ -146,10 +146,12 @@ fn find_cover_art(dir: &Path, album_title: &str) -> Option<String> {
 
 fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
     let file_path = path.clone().to_string_lossy().to_string();
+    let file_name = path.file_name().ok_or("Failed to get file name")?;
+    let file_name = file_name.to_string_lossy().to_string();
     let parent_dir = path.parent().ok_or("Failed to get parent directory")?;
 
     let tag = Tag::new().read_from_path(&path)?;
-    let title = tag.title().unwrap_or("Unknown").to_owned();
+    let title = tag.title().unwrap_or(&file_name).to_owned();
     let artist = tag.artist().unwrap_or("Unknown").to_owned();
     let album_title = tag.album_title().unwrap_or("Unknown").to_owned();
     let album_artist = match tag.album_artist() {
@@ -157,7 +159,18 @@ fn get_song_metadata(path: &PathBuf) -> Result<SongMetadata, Box<dyn Error>> {
         None => artist.clone(),
     };
 
-    let track_number = tag.track_number().unwrap_or(0);
+    let track_number = match tag.track_number() {
+        Some(t) => t,
+        None => {
+            // Attempt to get track number from first 2 characters in the file path
+            let first_two_chars = file_name.clone().chars().take(2).collect::<String>();
+            match first_two_chars.parse::<u16>() {
+                Ok(t) => t,
+                Err(_) => 0,
+            }
+        },
+    };
+
     let disc_number = tag.disc_number().unwrap_or(0);
     let duration = match tag.duration() {
         Some(d) => {
@@ -200,7 +213,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>, app: tauri::AppHandle) -
         let cover_path = album.cover_path.clone().unwrap_or_default();
 
         tx.execute(
-            "INSERT OR IGNORE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
+            "INSERT OR REPLACE INTO album (location_on_disk, cover_path, title, artist, year, genre) 
             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             params![
                 &album.location_on_disk,
@@ -214,7 +227,7 @@ fn commit_to_db(albums: HashMap<String, AlbumMetadata>, app: tauri::AppHandle) -
 
         for song in album.songs {
             tx.execute(
-                "INSERT OR IGNORE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
+                "INSERT OR REPLACE INTO song (file_path, cover_path, title, artist, album_title, album_artist, track_number, disc_number, duration, year, genre)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
                 params![
                     &song.file_path,
@@ -273,13 +286,7 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
 
         match get_song_metadata(&song_path) {
             Ok(metadata) => {
-                if current_album.title != metadata.album_title
-                || current_album.artist != metadata.album_artist
-                {
-                    if !current_album.songs.is_empty() {
-                        albums.insert(current_album.title.clone(), current_album.clone());
-                    }
-                    
+                if current_album.title != metadata.album_title || current_album.artist != metadata.album_artist {
                     let location_on_disk = metadata.parent_dir.clone();
                     let location_path = Path::new(&location_on_disk);
                     let cover_path = find_cover_art(&location_path, &metadata.album_title);
@@ -293,12 +300,17 @@ pub async fn register_dir(dir: &Path, app: tauri::AppHandle) -> Result<String, S
                         genre: metadata.genre.clone(),
                         songs: Vec::new(),
                     };
+
+                    albums.insert(current_album.title.clone(), current_album.clone());
+
+                    println!("Found album: {} by {}", current_album.title, current_album.artist);
                 }
-                current_album.songs.push(metadata);
+                albums.get_mut(&current_album.title).unwrap().songs.push(metadata.clone());
                 successful += 1;
                 app.emit("song_registered", crate::Payload { message: song_path.to_string_lossy().to_string() }).unwrap();
             }
             Err(_) => {
+                println!("Failed to read metadata for {}", song_path.to_string_lossy());
                 failed += 1;
                 // TODO: keep track of which files failed
             }

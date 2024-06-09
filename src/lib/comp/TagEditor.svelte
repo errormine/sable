@@ -4,6 +4,17 @@
     import { closeEditDialog, commitChanges, coverPath, editDialog, editInProgress, editProgress, editTotal, getNewCover, selectedSongs } from "../stores/tagEditor";
 
     export let windowTitle = "Editing tags";
+
+    selectedSongs.subscribe(songs => {
+        if (songs.length > 0) {
+            windowTitle = `Editing tags for ${songs.length} song${songs.length > 1 ? 's' : ''}`;
+        }
+
+        if (songs.length == 1) {
+            let path = songs[0].file_path.replace(/\\/g, '/');
+            windowTitle = path.split('/').pop();
+        }
+    });
 </script>
 
 <PopoutWindow bind:dialog={$editDialog} title={windowTitle} onClose={closeEditDialog}>
@@ -12,7 +23,6 @@
             <fieldset>
                 <label for="cover-path"><AlbumCover path={$coverPath}/></label>
                 <input on:click={getNewCover} hidden type="text" id="cover-path" name="cover-path" value={$coverPath}>
-                <!-- <p><strong>WARNING: Tag editing has not been thoroughly tested! Please let me know if you run into issues.</strong></p> -->
             </fieldset>
 
             <fieldset>

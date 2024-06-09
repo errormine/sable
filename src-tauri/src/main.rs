@@ -27,7 +27,7 @@ fn init_audio_player() {
 
     tauri::Builder::default()
         .setup(|app| {
-            let db_path = app.path().app_local_data_dir().unwrap().join("music.db");
+            let db_path = app.path().app_data_dir().unwrap().join("music.db");
             let conn = Connection::open(db_path).unwrap();
             let schema_path = app.path().resource_dir().unwrap().join("db/schema.sql");
             let schema = fs::read_to_string(schema_path).unwrap();
