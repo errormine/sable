@@ -53,17 +53,17 @@ export async function getArtistInfo(artist) {
     }
 
     let artistInfo = await lastFm.artist.getInfo({ artist: artist.name });
-    localStorage.setItem(artist.name, JSON.stringify(artistInfo.artist));
-
-    let thumbnail = await getArtistImageLastFm(artistInfo.artist);
-    if (thumbnail) {
-        setNewPortrait(artist.name, thumbnail);
+    let thumbnailUrl = await getArtistImageLastFm(artistInfo.artist);
+    if (thumbnailUrl) {
+        let portraitSrc = await downloadPortrait(thumbnailUrl);
+        let artistWithPortrait = { ...artistInfo.artist, thumbnail: portraitSrc };
+        localStorage.setItem(artist.name, JSON.stringify(artistWithPortrait));
     }
 
-    return localStorage.getItem(artist.name);
+    return JSON.parse(localStorage.getItem(artist.name));
 }
 
-export async function setNewPortrait(name, url) {
+export async function downloadPortrait(url) {
     let dest = await appDataDir();
     let seperator = sep();
     dest += `${seperator}portraits`;
@@ -71,10 +71,13 @@ export async function setNewPortrait(name, url) {
     
     await invokeWithToast("download", { url, dest, name: fileName });
     
+    return dest + `${seperator}${fileName}`;
+}
+
+export async function setNewPortrait(name, url) {
     let artist = JSON.parse(localStorage.getItem(name));
-    let finalPath = dest + `${seperator}${fileName}`;
-    artist.thumbnail = finalPath;
-    localStorage.setItem(name, JSON.stringify(artist));
+    let finalPath = await downloadPortrait(url);
+    localStorage.setItem(name, JSON.stringify({ ...artist, thumbnail: finalPath }));
 }
 
 export async function getArtistImages(artist) {

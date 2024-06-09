@@ -1,11 +1,12 @@
 <script>
     import Window from "../comp/Window.svelte";
-    import { activeArtist, albums, artists, clearActiveArtist, openAlbum } from "../stores/songLibrary";
+    import { activeArtist, albums, artistInfos, artists, clearActiveArtist, openAlbum } from "../stores/songLibrary";
     import ContextMenu, { Item, Divider } from "svelte-contextmenu";
     import CardListItem from "../comp/CardListItem.svelte";
     import { setActiveTab } from "../stores/windowManager";
     import { lastFm, getArtistInfo } from "../stores/lastfmAPI";
     import { convertFileSrc } from "@tauri-apps/api/core";
+    import { onMount } from "svelte";
 
     let artistsContextMenu;
     let showAlbums = true;
@@ -21,8 +22,6 @@
         setActiveTab("main", "Artist");
     }
 
-    let artistInfos = {};
-
     // Artist info loading needs to be refactored so I can update the thurmbnails when you update them from ArtistPage.svelte
     artists.subscribe(async (artists) => {
         if (!artists) return;
@@ -30,17 +29,15 @@
             let cachedInfo = localStorage.getItem(artist.name);
 
             if (cachedInfo) {
-                artistInfos[artist.name] = JSON.parse(cachedInfo);
+                $artistInfos[artist.name] = JSON.parse(cachedInfo);
                 continue;
             }
 
             // Wait a bit to avoid rate limiting, results are cached after first request
             await new Promise((resolve) => setTimeout(resolve, 500));
-            await getArtistInfo(artist)
-                .then((info) => {
-                    artistInfos[artist.name] = info;
-                    artistInfos = artistInfos;
-                });
+            let info = await getArtistInfo(artist);
+            console.log(info);
+            $artistInfos = {...$artistInfos, [artist.name]: info};
         }
     });
 </script>
@@ -74,8 +71,8 @@
                         highlighted={artist === $activeArtist}
                         onClick={() => toggleArtistPage(artist)}
                             >
-                        {#if artistInfos[artist.name] && artistInfos[artist.name].thumbnail}
-                            <img src={convertFileSrc(artistInfos[artist.name].thumbnail)} alt={artist.name} />
+                        {#if $artistInfos != null && $artistInfos[artist.name] != null && $artistInfos[artist.name].thumbnail}
+                            <img src={convertFileSrc($artistInfos[artist.name].thumbnail)} alt={artist.name} />
                         {:else}
                             <img src="/assets/placeholder/artist.png" alt={artist.name} />
                         {/if}

@@ -5,7 +5,7 @@
     import Window from "../comp/Window.svelte";
     import ContextMenu, { Item } from "svelte-contextmenu";
     import { getArtistImage, getArtistImages, getArtistInfo, lastFm, setNewPortrait } from "../stores/lastfmAPI";
-    import { activeArtist, clearActiveArtist, loadAlbums, openAlbum } from "../stores/songLibrary";
+    import { activeArtist, artistInfos, clearActiveArtist, loadAlbums, openAlbum } from "../stores/songLibrary";
     import PopoutWindow from "../comp/PopoutWindow.svelte";
     import { convertFileSrc } from "@tauri-apps/api/core";
     
@@ -13,13 +13,18 @@
     let artistInfo;
     let activeTab = 'albums';
 
+    artistInfos.subscribe((infos) => {
+        if (!$activeArtist) return;
+        artistInfo = infos[$activeArtist.name];
+    });
+
     activeArtist.subscribe(async (artist) => {
         if (!artist) {
             return;
         }
 
         albums = await loadAlbums(artist.name);
-        artistInfo = await getArtistInfo(artist);
+        artistInfo = $artistInfos[artist.name];
     });
 
     let portraitDialog;
@@ -27,23 +32,28 @@
     let portraitSources = [];
     let selectedNewPortrait;
 
-    async function showPortraitSelection() {
+    async function showPortraitDialog() {
         let artist = await getArtistInfo($activeArtist);
         portraitSources = await getArtistImages(artist);
         portraitDialog.showModal();
     }
 
+    async function closePortraitDialog() {
+        portraitSources = null;
+        portraitDialog.close();
+    }
+
     async function updatePortrait(src) {
         setNewPortrait($activeArtist.name, src)
             .then(async () => {
-                artistInfo = await getArtistInfo($activeArtist);
+                $artistInfos[$activeArtist.name] = await getArtistInfo($activeArtist);
                 portraitDialog.close();
             });
     }
 </script>
 
-<PopoutWindow bind:dialog={portraitDialog} title="Select Portrait">
-    {#if portraitSources != null}
+<PopoutWindow bind:dialog={portraitDialog} title="Select Portrait" onClose={closePortraitDialog}>
+    {#if portraitSources != null && $activeArtist != null}
         <form class="portrait-selector">
             <section class="portraits-wrapper">
                 <section class="portraits">
@@ -67,7 +77,7 @@
         {#if $activeArtist}
             <header class="hero">
                 <ContextMenu bind:this={portraitContextMenu}>
-                    <Item on:click={showPortraitSelection}>Download New Portrait</Item>
+                    <Item on:click={showPortraitDialog}>Download New Portrait</Item>
                     <Item>Open on Last.fm</Item>
                 </ContextMenu>
                 {#if artistInfo != null && artistInfo.thumbnail}

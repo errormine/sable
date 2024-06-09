@@ -4,6 +4,7 @@ import { setActiveTab } from "./windowManager";
 
 export const albums = writable([]);
 export const artists = writable([]);
+export const artistInfos = writable([]);
 
 export async function loadAlbums(name) {
     return await invoke('get_albums_by_artist', { artist: name })
